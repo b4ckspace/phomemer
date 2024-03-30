@@ -7,6 +7,8 @@ import {SliderModule} from 'primeng/slider';
 import {ButtonModule} from 'primeng/button';
 import {HttpClient} from '@angular/common/http';
 import {debounceTime, firstValueFrom} from 'rxjs';
+import {ChipModule} from 'primeng/chip';
+import {DropdownModule} from 'primeng/dropdown';
 
 @Component({
     selector: 'app-canvas-page',
@@ -16,7 +18,9 @@ import {debounceTime, firstValueFrom} from 'rxjs';
         CheckboxModule,
         NgIf,
         SliderModule,
-        ButtonModule
+        ButtonModule,
+        ChipModule,
+        DropdownModule
     ],
     templateUrl: './canvas-page.component.html',
     styleUrl: './canvas-page.component.scss'
@@ -29,19 +33,25 @@ export class CanvasPageComponent implements AfterViewInit {
     public form: FormGroup;
     public width = 323;
     public height = 240;
+    public fonts = [
+        'Noto Sans',
+        'Noto Serif',
+        'Comic Sans MS'
+    ]
 
     constructor(
         private formBuilder: FormBuilder,
         private httpClient: HttpClient
     ) {
         this.form = this.formBuilder.group({
-            drawingMode: [false],
-            brushSize: [2],
+            drawingMode: [true],
+            brushSize: [8],
+            fontSize: [30],
+            fontFamily: [this.fonts[0]]
         });
     }
 
     public ngAfterViewInit() {
-        console.log(this.canvas);
         if (this.canvas) {
             this.fabric = new fabric.Canvas('canvas', {
                 backgroundColor: '#fff',
@@ -50,7 +60,10 @@ export class CanvasPageComponent implements AfterViewInit {
                 height: this.height,
                 interactive: true,
                 renderOnAddRemove: true,
+                isDrawingMode: this.form.get('drawingMode')?.value,
             });
+            this.fabric.setBackgroundColor('#fff', () => {});
+            this.fabric.freeDrawingBrush.width = this.form.get('brushSize')?.value
         }
 
         this.form.valueChanges.pipe(debounceTime(50)).subscribe(values => {
@@ -63,12 +76,26 @@ export class CanvasPageComponent implements AfterViewInit {
         });
     }
 
+    public createText() {
+        this.form.patchValue({drawingMode: false});
+        if (this.fabric) {
+            this.fabric.add(new fabric.Textbox('add text', {
+                height: 40,
+                width: 200,
+                top: 40,
+                left: 50,
+                fontSize: this.form.get('fontSize')?.value,
+                fontFamily: this.form.get('fontFamily')?.value
+            }))
+        }
+    }
+
     public async print() {
         this.busy = true;
         try {
             const fd = new FormData();
             fd.append('image', await this.getBlob());
-            const response = await firstValueFrom(this.httpClient.post('http://94.45.243.136:5000/print', fd));
+            const response = await firstValueFrom(this.httpClient.post('http://94.45.243.136:8000/print', fd));
             console.log(response);
         } catch (e) {
             console.error(e);

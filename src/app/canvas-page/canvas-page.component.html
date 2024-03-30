@@ -19,6 +19,15 @@
             <span class="size">{{ form.get('brushSize')?.value }}</span>
         </div>
     </div>
+    <div class="group group-text">
+        <p-button size="small" (click)="createText()">+ text</p-button>
+        <p-slider class="item grow" [min]="5" [max]="72" formControlName="fontSize"></p-slider>
+        <p-chip label="{{ form.get('fontSize')?.value }}"></p-chip>
+    </div>
+    <div class="group group-text">
+    <p-dropdown formControlName="fontFamily" [editable]="true" [options]="fonts"></p-dropdown>
+
+    </div>
 </form>
 
 <div class="actions">
