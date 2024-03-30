@@ -66,7 +66,8 @@ export class CanvasPageComponent implements AfterViewInit {
                 renderOnAddRemove: true,
                 isDrawingMode: this.form.get('drawingMode')?.value,
             });
-            this.fabric.setBackgroundColor('#fff', () => {});
+            this.fabric.setBackgroundColor('#fff', () => {
+            });
             this.fabric.freeDrawingBrush.width = this.form.get('brushSize')?.value
         }
 
@@ -94,6 +95,30 @@ export class CanvasPageComponent implements AfterViewInit {
         }
     }
 
+    public createImg() {
+        this.form.patchValue({drawingMode: false});
+        if (this.fabric) {
+            const fileInput = document.createElement('input');
+            fileInput.setAttribute('type', 'file');
+            fileInput.setAttribute('accep', 'image/*');
+            fileInput.addEventListener('change', (e) => {
+                    const file = (e as any).target.files[0];
+                    const reader = new FileReader();
+                    reader.onload = (f) => {
+                        var data = (f as any).target.result;
+                        fabric.Image.fromURL(data, (img) => {
+                            const oImg = img.set({left: 0, top: 0, angle: 0});
+                            this.fabric?.add(oImg).renderAll();
+                        });
+                    };
+                    reader.readAsDataURL(file);
+                }
+            )
+
+            fileInput.click();
+        }
+    }
+
     public async print() {
         this.busy = true;
         try {
@@ -103,14 +128,19 @@ export class CanvasPageComponent implements AfterViewInit {
             this.messageService.add({severity: 'success', summary: 'Success', detail: 'enjoy your label'});
         } catch (e) {
             console.error(e);
-            this.messageService.add({severity: 'error', summary: 'oof', detail: (e as any).message ? (e as any).message : '???'});
+            this.messageService.add({
+                severity: 'error',
+                summary: 'oof',
+                detail: (e as any).message ? (e as any).message : '???'
+            });
         }
         this.busy = false;
     }
 
     public clear() {
         this.fabric?.clear();
-        this.fabric?.setBackgroundColor('#fff', () => {});
+        this.fabric?.setBackgroundColor('#fff', () => {
+        });
     }
 
     private getBlob(): Promise<Blob> {
@@ -128,5 +158,4 @@ export class CanvasPageComponent implements AfterViewInit {
             }
         });
     }
-
 }

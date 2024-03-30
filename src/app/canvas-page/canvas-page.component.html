@@ -27,8 +27,10 @@
         <p-chip label="{{ form.get('fontSize')?.value }}"></p-chip>
     </div>
     <div class="group group-text">
-    <p-dropdown formControlName="fontFamily" [editable]="true" [options]="fonts"></p-dropdown>
-
+        <p-dropdown formControlName="fontFamily" [editable]="true" [options]="fonts"></p-dropdown>
+    </div>
+    <div class="group group-text">
+        <p-button size="small" (click)="createImg()">+ img</p-button>
     </div>
 </form>
 
