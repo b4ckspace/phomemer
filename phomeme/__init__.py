@@ -1,0 +1,82 @@
+import socket
+
+from PIL import Image, ImageDraw, ImageFont
+from flask import Flask, request, make_response
+from flask_cors import CORS
+from io import BytesIO
+
+DEVICE = "B9:26:5A:67:50:49"
+
+app = Flask(__name__)
+app.config["MAX_CONTENT_LENGTH"] = 40 * 1024 * 1024
+CORS(app)
+
+
+@app.route("/print", methods=["OPTIONS", "HEAD"])
+def head_image():
+    return "", 200
+
+
+@app.route("/print", methods=["POST"])
+def handle_image():
+    try:
+        img = Image.open(request.files["image"])
+    except Exception as e:
+        return f"Error loading image: {e}", 500
+
+    try:
+        print_image(img, resize=True)
+    except Exception as e:
+        return f"Error printing image: {e}", 500
+
+    return "ok", 200
+
+
+def resize_image(img: Image):
+    if img.height > img.width:
+        img = img.transpose(Image.ROTATE_90)
+
+    if 323 / img.width * img.height <= 240:
+        img = img.resize(size=(323, int(323 / img.width * img.height)))
+    else:
+        img = img.resize(size=(int(240 / img.height * img.width), 240))
+    return img
+
+
+def print_image(img: Image, resize=False, offset=True):
+    img = img.convert("1")
+    if resize:
+        img = resize_image(img)
+    if offset:
+        imgborder = Image.new("1", (384, 240), color=1)
+        imgborder.paste(img, (61, 0))
+        img = imgborder
+
+    buf = []
+    buf += [0x1B, 0x40]
+    buf += [0x1D, 0x76, 0x30, 0x0]
+
+    width = img.width
+    height = img.height
+    width8 = width // 8
+
+    buf += [width8 & 0xFF, width8 >> 8]
+    buf += [height & 0xFF, height >> 8]
+
+    ibuf = [0] * height * width8
+    for y in range(height):
+        for x in range(width):
+            if img.getpixel((x, y)) == 0:
+                ibuf[x // 8 + y * width8] |= 1 << (7 - (x & 7))
+    ibuf = [b if b != 0x0A else 0x14 for b in ibuf]
+
+    buf += ibuf
+
+    # -- send
+
+    sock = socket.socket(socket.AF_BLUETOOTH, socket.SOCK_STREAM, socket.BTPROTO_RFCOMM)
+    sock.bind((socket.BDADDR_ANY, 1))
+    sock.connect((DEVICE, 1))
+    sock.sendall(bytes(buf))
+    sock.recv(1024)
+    sock.close()

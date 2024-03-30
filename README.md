@@ -1,10 +1,8 @@
-[![No Maintenance Intended](http://unmaintained.tech/badge.svg)](http://unmaintained.tech/)
+# phomeme
 
 # phomemer
 
-## Development server
-
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+Heavily based on [SFZ-aalen][1]
 
 ## Code scaffolding
 
