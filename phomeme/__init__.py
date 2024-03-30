@@ -1,4 +1,5 @@
 from io import BytesIO
+from multiprocessing import mp
 import socket
 
 from PIL import Image, ImageDraw, ImageFont
@@ -9,6 +10,8 @@ DEVICE = "B9:26:5A:67:50:49"
 
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 40 * 1024 * 1024
+app.config["UPLOAD_FOLDER"] = "uploads"
+app.printlock = Lock()
 CORS(app)
 
 
@@ -25,8 +28,10 @@ def static_helper(static):
 @app.route("/print", methods=["POST"])
 def handle_image():
     try:
-        img = Image.open(request.files["image"])
+        f = request.files["image"]
+        img = Image.open(f)
     except Exception as e:
+        print(e)
         return f"Error loading image: {e}", 500
 
     try:
@@ -65,7 +70,7 @@ class PrintImage:
         imgborder.paste(self.image, (61, 0))
         self.image = imgborder
 
-    def print(self):
+    def _print(self):
         img = self.image.convert("1")
 
         buf = []
@@ -98,3 +103,7 @@ class PrintImage:
         sock.sendall(bytes(buf))
         sock.recv(1024)
         sock.close()
+
+    def print(self):
+        with app.printlock:
+            self._print()
