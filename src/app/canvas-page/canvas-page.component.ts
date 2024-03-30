@@ -100,17 +100,17 @@ export class CanvasPageComponent implements AfterViewInit {
             const fd = new FormData();
             fd.append('image', await this.getBlob());
             const response = await firstValueFrom(this.httpClient.post('http://94.45.243.136:8000/print', fd));
-            console.log(response);
             this.messageService.add({severity: 'success', summary: 'Success', detail: 'enjoy your label'});
         } catch (e) {
             console.error(e);
-            this.messageService.add({severity: 'error', summary: 'oof', detail: String(e)});
+            this.messageService.add({severity: 'error', summary: 'oof', detail: (e as any).message ? (e as any).message : '???'});
         }
         this.busy = false;
     }
 
     public clear() {
         this.fabric?.clear();
+        this.fabric?.setBackgroundColor('#fff', () => {});
     }
 
     private getBlob(): Promise<Blob> {
