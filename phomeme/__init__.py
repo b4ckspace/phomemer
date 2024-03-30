@@ -1,5 +1,5 @@
 from io import BytesIO
-from multiprocessing import mp
+from multiprocessing import Lock
 import socket
 
 from PIL import Image, ImageDraw, ImageFont
