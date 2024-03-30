@@ -65,6 +65,8 @@ export class CanvasPageComponent implements AfterViewInit {
                 interactive: true,
                 renderOnAddRemove: true,
                 isDrawingMode: this.form.get('drawingMode')?.value,
+                centeredScaling: true,
+                centeredRotation: true,
             });
             this.fabric.setBackgroundColor('#fff', () => {
             });
@@ -107,7 +109,7 @@ export class CanvasPageComponent implements AfterViewInit {
                     reader.onload = (f) => {
                         var data = (f as any).target.result;
                         fabric.Image.fromURL(data, (img) => {
-                            const oImg = img.set({left: 0, top: 0, angle: 0});
+                            const oImg = img.set({left: 0, top: 0, angle: 0}).scale(0.5);
                             this.fabric?.add(oImg).renderAll();
                         });
                     };
