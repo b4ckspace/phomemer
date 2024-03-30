@@ -25,58 +25,71 @@ def handle_image():
         return f"Error loading image: {e}", 500
 
     try:
-        print_image(img, resize=True)
+        print_image = PrintImage(img)
+        print_image.print()
     except Exception as e:
         return f"Error printing image: {e}", 500
 
     return "ok", 200
 
 
-def resize_image(img: Image):
-    if img.height > img.width:
-        img = img.transpose(Image.ROTATE_90)
+class PrintImage:
+    image: Image
 
-    if 323 / img.width * img.height <= 240:
-        img = img.resize(size=(323, int(323 / img.width * img.height)))
-    else:
-        img = img.resize(size=(int(240 / img.height * img.width), 240))
-    return img
+    def __init__(self, image: Image, offset=True, resize=True):
+        self.image = image
+        if resize:
+            self._resize()
+        if offset:
+            self._offset()
 
+    def _resize(self):
+        img = self.image
 
-def print_image(img: Image, resize=False, offset=True):
-    img = img.convert("1")
-    if resize:
-        img = resize_image(img)
-    if offset:
+        if img.height > img.width:
+            img = img.transpose(Image.ROTATE_90)
+        if 323 / img.width * img.height <= 240:
+            img = img.resize(size=(323, int(323 / img.width * img.height)))
+        else:
+            img = img.resize(size=(int(240 / img.height * img.width), 240))
+
+        self.image = img
+
+    def _offset(self):
         imgborder = Image.new("1", (384, 240), color=1)
-        imgborder.paste(img, (61, 0))
-        img = imgborder
+        imgborder.paste(self.image, (61, 0))
+        self.image = imgborder
 
-    buf = []
-    buf += [0x1B, 0x40]
-    buf += [0x1D, 0x76, 0x30, 0x0]
+    def print(self):
+        img = self.image.convert("1")
 
-    width = img.width
-    height = img.height
-    width8 = width // 8
+        buf = []
+        buf += [0x1B, 0x40]
+        buf += [0x1D, 0x76, 0x30, 0x0]
 
-    buf += [width8 & 0xFF, width8 >> 8]
-    buf += [height & 0xFF, height >> 8]
+        width = img.width
+        height = img.height
+        width8 = width // 8
 
-    ibuf = [0] * height * width8
-    for y in range(height):
-        for x in range(width):
-            if img.getpixel((x, y)) == 0:
-                ibuf[x // 8 + y * width8] |= 1 << (7 - (x & 7))
-    ibuf = [b if b != 0x0A else 0x14 for b in ibuf]
+        buf += [width8 & 0xFF, width8 >> 8]
+        buf += [height & 0xFF, height >> 8]
 
-    buf += ibuf
+        ibuf = [0] * height * width8
+        for y in range(height):
+            for x in range(width):
+                if img.getpixel((x, y)) == 0:
+                    ibuf[x // 8 + y * width8] |= 1 << (7 - (x & 7))
+        ibuf = [b if b != 0x0A else 0x14 for b in ibuf]
 
-    # -- send
+        buf += ibuf
 
-    sock = socket.socket(socket.AF_BLUETOOTH, socket.SOCK_STREAM, socket.BTPROTO_RFCOMM)
-    sock.bind((socket.BDADDR_ANY, 1))
-    sock.connect((DEVICE, 1))
-    sock.sendall(bytes(buf))
-    sock.recv(1024)
-    sock.close()
+        # -- send
+
+        sock = socket.socket(
+            socket.AF_BLUETOOTH, socket.SOCK_STREAM, socket.BTPROTO_RFCOMM
+        )
+        sock.bind((socket.BDADDR_ANY, 1))
+        sock.connect((DEVICE, 1))
+        sock.sendall(bytes(buf))
+        sock.recv(1024)
+        sock.close()
