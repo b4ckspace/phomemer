@@ -1,9 +1,9 @@
+from io import BytesIO
 import socket
 
 from PIL import Image, ImageDraw, ImageFont
-from flask import Flask, request, make_response
+from flask import Flask, request, make_response, redirect
 from flask_cors import CORS
-from io import BytesIO
 
 DEVICE = "B9:26:5A:67:50:49"
 
@@ -12,9 +12,14 @@ app.config["MAX_CONTENT_LENGTH"] = 40 * 1024 * 1024
 CORS(app)
 
 
-@app.route("/print", methods=["OPTIONS", "HEAD"])
-def head_image():
-    return "", 200
+@app.route("/")
+def index():
+    return redirect("/index.html")
+
+
+@app.route("/<path:static>")
+def static_helper(static):
+    return app.send_static_file(static)
 
 
 @app.route("/print", methods=["POST"])
