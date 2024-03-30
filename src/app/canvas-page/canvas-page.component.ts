@@ -102,15 +102,16 @@ export class CanvasPageComponent implements AfterViewInit {
         if (this.fabric) {
             const fileInput = document.createElement('input');
             fileInput.setAttribute('type', 'file');
-            fileInput.setAttribute('accep', 'image/*');
+            fileInput.setAttribute('accept', 'image/*');
             fileInput.addEventListener('change', (e) => {
                     const file = (e as any).target.files[0];
                     const reader = new FileReader();
                     reader.onload = (f) => {
                         var data = (f as any).target.result;
                         fabric.Image.fromURL(data, (img) => {
-                            const oImg = img.set({left: 0, top: 0, angle: 0}).scale(0.5);
-                            this.fabric?.add(oImg).renderAll();
+                            const oImg = img.set({left: 0, top: 0, angle: 0});
+                            const scale = Math.min(1, this.width / Number(oImg.width), this.height / Number(oImg.height));
+                            this.fabric?.add(oImg.scale(scale)).renderAll();
                         });
                     };
                     reader.readAsDataURL(file);
