@@ -1,0 +1,28 @@
+<div class="canvas-wrapper">
+    <div class="canvas-frame">
+        <canvas id="canvas" #canvasElement [height]="height" [width]="width"></canvas>
+    </div>
+</div>
+
+<form class="controls" *ngIf="form" [formGroup]="form">
+    <div class="group group-drawing">
+        <label class="item">
+            <p-checkbox formControlName="drawingMode" [binary]="true" inputId="drawingMode"></p-checkbox>
+            enable drawing
+        </label>
+        <p-slider class="item grow" [min]="1" [max]="30" formControlName="brushSize"></p-slider>
+        <div class="brush-preview">
+            <div class="brush"
+                 [style.width]="form.get('brushSize')?.value + 'px'"
+                 [style.height]="form.get('brushSize')?.value + 'px'"
+            ></div>
+            <span class="size">{{ form.get('brushSize')?.value }}</span>
+        </div>
+    </div>
+</form>
+
+<div class="actions">
+    <p-button [disabled]="busy" severity="danger" size="large" (click)="clear()">clear</p-button>
+    <p-button [disabled]="busy" severity="success" size="large" (click)="print()">print</p-button>
+</div>
+
