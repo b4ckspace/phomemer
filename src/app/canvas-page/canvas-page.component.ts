@@ -9,6 +9,8 @@ import {HttpClient} from '@angular/common/http';
 import {debounceTime, firstValueFrom} from 'rxjs';
 import {ChipModule} from 'primeng/chip';
 import {DropdownModule} from 'primeng/dropdown';
+import {MessageService} from 'primeng/api';
+import {ToastModule} from 'primeng/toast';
 
 @Component({
     selector: 'app-canvas-page',
@@ -20,7 +22,8 @@ import {DropdownModule} from 'primeng/dropdown';
         SliderModule,
         ButtonModule,
         ChipModule,
-        DropdownModule
+        DropdownModule,
+        ToastModule
     ],
     templateUrl: './canvas-page.component.html',
     styleUrl: './canvas-page.component.scss'
@@ -41,7 +44,8 @@ export class CanvasPageComponent implements AfterViewInit {
 
     constructor(
         private formBuilder: FormBuilder,
-        private httpClient: HttpClient
+        private httpClient: HttpClient,
+        private messageService: MessageService,
     ) {
         this.form = this.formBuilder.group({
             drawingMode: [true],
@@ -97,8 +101,10 @@ export class CanvasPageComponent implements AfterViewInit {
             fd.append('image', await this.getBlob());
             const response = await firstValueFrom(this.httpClient.post('http://94.45.243.136:8000/print', fd));
             console.log(response);
+            this.messageService.add({severity: 'success', summary: 'Success', detail: 'enjoy your label'});
         } catch (e) {
             console.error(e);
+            this.messageService.add({severity: 'error', summary: 'oof', detail: String(e)});
         }
         this.busy = false;
     }
