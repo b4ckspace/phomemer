@@ -8,6 +8,7 @@ from flask_cors import CORS
 
 DEVICE = "B9:26:5A:67:50:49"
 
+
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 40 * 1024 * 1024
 app.config["UPLOAD_FOLDER"] = "uploads"
@@ -38,6 +39,7 @@ def handle_image():
         print_image = PrintImage(img)
         print_image.print()
     except Exception as e:
+        print(e)
         return f"Error printing image: {e}", 500
 
     return "ok", 200
