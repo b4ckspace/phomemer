@@ -15,9 +15,7 @@ poetry run flask --app phomeme:app run \
 poetry run gunicorn -w 1 'phomeme:app' -b [::0]
 ```
 
-
 ## Usage
-
 
 Visit the awesome [frontend][1] on http://localhost:8000 or send via
 curl using `curl -v -F image=@image.pdf localhost:5000/print`.
