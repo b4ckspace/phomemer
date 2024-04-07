@@ -3,7 +3,7 @@ from multiprocessing import Lock
 import socket
 
 from PIL import Image, ImageDraw, ImageFont
-from flask import Flask, request, make_response, redirect
+from flask import Flask, request, make_response, redirect, jsonify
 from flask_cors import CORS
 
 DEVICE = "B9:26:5A:67:50:49"
@@ -42,7 +42,7 @@ def handle_image():
         print(e)
         return f"Error printing image: {e}", 500
 
-    return "ok", 200
+    return jsonify("ok")
 
 
 class PrintImage:
