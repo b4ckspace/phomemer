@@ -30,7 +30,7 @@ curl using `curl -v -F image=@image.pdf localhost:5000/print`.
 
 ## Credits
 
-The print code is inspured by [labelprinter from SFZ-aalen][1]
+The print code is inspired by [labelprinter from SFZ-aalen][1]
 
 
 [1]: https://gitlab.com/sfz.aalen/infra/labelprinter
