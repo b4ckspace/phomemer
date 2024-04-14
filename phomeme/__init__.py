@@ -1,12 +1,13 @@
 from io import BytesIO
 from multiprocessing import Lock
+import os
 import socket
 
 from PIL import Image, ImageDraw, ImageFont
 from flask import Flask, request, make_response, redirect, jsonify
 from flask_cors import CORS
 
-DEVICE = "B9:26:5A:67:50:49"
+DEVICE = os.environ["PHOMEMO_BT_MAC"]
 
 
 app = Flask(__name__)
@@ -96,7 +97,6 @@ class PrintImage:
         buf += ibuf
 
         # -- send
-
         sock = socket.socket(
             socket.AF_BLUETOOTH, socket.SOCK_STREAM, socket.BTPROTO_RFCOMM
         )
