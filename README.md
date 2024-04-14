@@ -1,14 +1,12 @@
-# phomeme
-
 # phomemer
 
 ## Docker container
 
 Note: it's important to run with `--net=host`. This allows the container to
-access bluetooth devices. Sadly, this will most likely only work under linux. 
+access bluetooth devices. Sadly, this will most likely only work under linux.
 
 ```
-docker run -e PHOMEMO_BT_MAC=<your-printers-mac> --net=host -it test
+docker run -e PHOMEMO_BT_MAC=<your-printers-mac> --net=host -it pull ghcr.io/b4ckspace/phomemer:v0.1.0
 ```
 
 ## Local Development
