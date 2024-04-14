@@ -2,17 +2,27 @@
 
 # phomemer
 
-## Development
+## Docker container
+
+Note: it's important to run with `--net=host`. This allows the container to
+access bluetooth devices. Sadly, this will most likely only work under linux. 
+
+```
+docker run -e PHOMEMO_BT_MAC=<your-printers-mac> --net=host -it test
+```
+
+## Local Development
 
 ```sh
-poetry run flask --app phomeme:app run \
+PHOMEMO_BT_MAC=<your-printers-mac> poetry run flask \
+   --app phomeme:app run \
   --debug --host 0.0.0.0 --port 8000
 ```
 
 ## Production
 
 ```sh
-poetry run gunicorn -w 1 'phomeme:app' -b [::0]
+PHOMEMO_BT_MAC=<your-printers-mac> poetry run gunicorn -w 1 'phomeme:app' -b [::0]
 ```
 
 ## Usage
@@ -22,12 +32,8 @@ curl using `curl -v -F image=@image.pdf localhost:5000/print`.
 
 ## Credits
 
-Heavily based on [SFZ-aalen][2]
+The print code is inspured by [labelprinter from SFZ-aalen][1]
 
-## Code scaffolding
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+[1]: https://gitlab.com/sfz.aalen/infra/labelprinter
 
-## Build
-
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
