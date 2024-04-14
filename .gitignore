@@ -40,3 +40,12 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+# python
+/.venv
+__pycache__/
+*.py[cod]
+*$py.class
+
+# project
+/phomeme/static
