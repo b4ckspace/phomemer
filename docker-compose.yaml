@@ -1,0 +1,7 @@
+services:
+
+  phomemer:
+    image: ghcr.io/b4ckspace/phomemer:latest
+    environment:
+      PHOMEMO_BT_MAC: ${YOUR_PRINTERS_MAC}
+    network_mode: "host"
