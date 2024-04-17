@@ -49,3 +49,6 @@ __pycache__/
 
 # project
 /phomeme/static
+
+# env
+.env
