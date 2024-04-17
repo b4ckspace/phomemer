@@ -9,6 +9,16 @@ access bluetooth devices. Sadly, this will most likely only work under linux.
 docker run -e PHOMEMO_BT_MAC=<your-printers-mac> --net=host -it ghcr.io/b4ckspace/phomemer
 ```
 
+## Docker compose
+
+1. Copy .env.dist to .env and enter your printer address, with colons
+
+(Without colons it will fail, ERROR 500)
+
+```sh 
+docker compose up
+```
+
 ## Local Development
 
 ```sh
