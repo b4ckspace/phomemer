@@ -15,7 +15,7 @@ docker run -e PHOMEMO_BT_MAC=<your-printers-mac> --net=host -it ghcr.io/b4ckspac
 
 (Without colons it will fail, ERROR 500)
 
-```sh 
+```sh
 docker compose up
 ```
 
@@ -23,7 +23,7 @@ docker compose up
 
 ```sh
 PHOMEMO_BT_MAC=<your-printers-mac> poetry run flask \
-   --app phomeme:app run \
+  --app phomeme:app run \
   --debug --host 0.0.0.0 --port 8000
 ```
 
@@ -35,7 +35,7 @@ PHOMEMO_BT_MAC=<your-printers-mac> poetry run gunicorn -w 1 'phomeme:app' -b [::
 
 ## Usage
 
-Visit the awesome [frontend][1] on http://localhost:8000 or send via
+Visit the awesome frontend on http://localhost:8000 or send via
 curl using `curl -v -F image=@image.pdf localhost:5000/print`.
 
 ## Credits
