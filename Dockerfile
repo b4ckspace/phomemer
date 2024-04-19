@@ -1,4 +1,4 @@
-FROM node:20 as frontend
+FROM node:20-alpine as frontend
 
 WORKDIR /app
 
@@ -9,10 +9,11 @@ RUN npm run build
 
 # ---
 
-FROM python:3.12 as backend
+FROM python:3.12-alpine as backend
 
 WORKDIR /app
 
+RUN pip install wheel
 RUN pip install uv
 COPY pyproject.toml poetry.lock README.md /app/
 RUN uv pip compile pyproject.toml -o requirements.txt
@@ -21,7 +22,7 @@ RUN uv pip install --requirement=requirements.txt
 
 # ---
 
-FROM python:3.12
+FROM python:3.12-alpine
 
 WORKDIR /app
 
