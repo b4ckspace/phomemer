@@ -69,7 +69,8 @@
                             "buildTarget": "phomemer:build:production"
                         },
                         "development": {
-                            "buildTarget": "phomemer:build:development"
+                            "buildTarget": "phomemer:build:development",
+                            "proxyConfig": "proxy.conf.json"
                         }
                     },
                     "defaultConfiguration": "development"
@@ -103,6 +104,6 @@
         }
     },
     "cli": {
-      "analytics": false
+        "analytics": false
     }
 }
