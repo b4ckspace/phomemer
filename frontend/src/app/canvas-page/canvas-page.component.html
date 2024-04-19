@@ -1,8 +1,40 @@
 <p-toast></p-toast>
 
+<div class="paper">
+    <p-overlayPanel #sizesPanel>
+        <form class="paper-size-form" [formGroup]="paperSizeForm">
+            <label>
+                <div>width</div>
+                <input pInputText formControlName="width">
+            </label>
+            <label>
+                <div>height</div>
+                <input pInputText formControlName="height">
+            </label>
+            <label>
+                <div>dpi</div>
+                <input pInputText formControlName="dpi">
+            </label>
+        </form>
+
+        <p-button *ngFor="let size of SIZES" [text]="true"
+                  (click)="paperSize = size; sizesPanel.toggle($event)">
+            {{ size.width }} × {{ size.height }} mm [{{ size.shape }}]
+        </p-button>
+    </p-overlayPanel>
+
+    <p-button (click)="sizesPanel.toggle($event)">
+        {{ paperSize.width }} × {{ paperSize.height }} mm [{{ paperSize.shape }}]
+    </p-button>
+</div>
+
 <div class="canvas-wrapper">
-    <div class="canvas-frame">
-        <canvas id="canvas" #canvasElement [height]="height" [width]="width"></canvas>
+    <div class="canvas-frame" [attr.data-shape]="paperSize.shape">
+        <canvas id="canvas" #canvasElement></canvas>
+        <div class="canvas-mask">
+            <div class="label"></div>
+            <div *ngIf="paperSize.shape === PaperShape.Split" class="label"></div>
+        </div>
     </div>
 </div>
 

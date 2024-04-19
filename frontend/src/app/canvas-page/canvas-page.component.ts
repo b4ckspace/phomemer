@@ -1,8 +1,8 @@
 import {AfterViewInit, Component, ElementRef, ViewChild} from '@angular/core';
 import {fabric} from 'fabric';
-import {FormBuilder, FormGroup, ReactiveFormsModule} from '@angular/forms';
+import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {CheckboxModule} from 'primeng/checkbox';
-import {NgIf} from '@angular/common';
+import {NgForOf, NgIf} from '@angular/common';
 import {SliderModule} from 'primeng/slider';
 import {ButtonModule} from 'primeng/button';
 import {HttpClient} from '@angular/common/http';
@@ -11,6 +11,13 @@ import {ChipModule} from 'primeng/chip';
 import {DropdownModule} from 'primeng/dropdown';
 import {MessageService} from 'primeng/api';
 import {ToastModule} from 'primeng/toast';
+import {PaperShape, PaperSize, SIZES} from '../data/paper-sizes';
+import {OverlayPanelModule} from 'primeng/overlaypanel';
+import {InputTextModule} from 'primeng/inputtext';
+
+const getPx = (mm: number, dpi: number) => {
+    return mm / 25.4 * dpi;
+}
 
 @Component({
     selector: 'app-canvas-page',
@@ -23,7 +30,10 @@ import {ToastModule} from 'primeng/toast';
         ButtonModule,
         ChipModule,
         DropdownModule,
-        ToastModule
+        ToastModule,
+        OverlayPanelModule,
+        NgForOf,
+        InputTextModule
     ],
     templateUrl: './canvas-page.component.html',
     styleUrl: './canvas-page.component.scss'
@@ -34,13 +44,25 @@ export class CanvasPageComponent implements AfterViewInit {
     public fabric?: fabric.Canvas;
     public ctx?: CanvasRenderingContext2D;
     public form: FormGroup;
-    public width = 323;
-    public height = 240;
+    public paperSizeForm: FormGroup;
+    public width = 0;
+    public height = 0;
     public fonts = [
         'Noto Sans',
         'Noto Serif',
         'Comic Sans MS'
     ]
+
+    public set paperSize(size: PaperSize) {
+        this.paperSizeForm.setValue(size);
+    }
+
+    public get paperSize(): PaperSize {
+        return this.paperSizeForm.value;
+    }
+
+    protected readonly PaperShape = PaperShape;
+    protected readonly SIZES = SIZES;
 
     constructor(
         private formBuilder: FormBuilder,
@@ -53,6 +75,23 @@ export class CanvasPageComponent implements AfterViewInit {
             fontSize: [30],
             fontFamily: [this.fonts[0]]
         });
+
+        this.paperSizeForm = this.formBuilder.group({
+            width: [null, [Validators.required]],
+            height: [null, [Validators.required]],
+            dpi: [null, [Validators.required]],
+            shape: [null, [Validators.required]]
+        });
+
+        this.paperSizeForm.valueChanges.subscribe(size => {
+            this.width = getPx(size.width, size.dpi);
+            this.height = getPx(size.height, size.dpi);
+            this.fabric?.setWidth(this.width);
+            this.fabric?.setHeight(this.height);
+            this.fabric?.renderAll();
+        })
+
+        this.paperSize = SIZES[0];
     }
 
     public ngAfterViewInit() {
@@ -107,7 +146,7 @@ export class CanvasPageComponent implements AfterViewInit {
                     const file = (e as any).target.files[0];
                     const reader = new FileReader();
                     reader.onload = (f) => {
-                        var data = (f as any).target.result;
+                        const data = (f as any).target.result;
                         fabric.Image.fromURL(data, (img) => {
                             const oImg = img.set({left: 0, top: 0, angle: 0});
                             const scale = Math.min(1, this.width / Number(oImg.width), this.height / Number(oImg.height));

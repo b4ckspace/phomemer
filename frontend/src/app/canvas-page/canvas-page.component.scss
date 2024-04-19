@@ -1,14 +1,42 @@
-.canvas-frame {
-    border: 2px solid #888;
-    border-radius: 20px;
-    background: #fff;
-    overflow: hidden;
-}
-
 .canvas-wrapper {
     display: flex;
     justify-content: center;
 }
+
+
+.canvas-frame {
+    position: relative;
+    border-radius: 15px;
+    overflow: hidden;
+
+    .canvas-mask {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        display: flex;
+        flex-direction: row;
+        justify-content: stretch;
+        gap: 15px;
+        pointer-events: none;
+    }
+
+    .label {
+        flex: 1;
+        border: 2px solid rgba(0,0,0,0.5);
+        border-radius: 15px;
+    }
+
+    &[data-shape="circular"] {
+        border-radius: 50%;
+
+        .label {
+            border-radius: 50%;
+        }
+    }
+}
+
 
 .controls {
     padding: 0.5em 0;
@@ -54,4 +82,23 @@
     flex-wrap: wrap;
     justify-content: center;
     gap: 1em;
+}
+
+.paper {
+    padding-bottom: 1em;
+}
+
+.paper-size-form {
+    display: flex;
+    flex-direction: row;
+    gap: 0.3em;
+    margin: 0 0 1em;
+
+    label {
+        width: 70px;
+
+        input {
+            width: 100%;
+        }
+    }
 }
