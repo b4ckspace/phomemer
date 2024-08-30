@@ -37,7 +37,7 @@ def handle_image():
         return f"Error loading image: {e}", 500
 
     try:
-        print_image = PrintImage(img)
+        print_image = PrintImage(img, offset=True, resize=False)
         print_image.print()
     except Exception as e:
         print(e)
@@ -69,8 +69,12 @@ class PrintImage:
         self.image = img
 
     def _offset(self):
-        imgborder = Image.new("1", (384, 240), color=1)
-        imgborder.paste(self.image, (61, 0))
+        # For some reason, the printer rejects widths > 384px, even though it
+        # should be able to print 50mm*8px/mm=400px...
+        target_width, target_height = 384, max(240, self.image.height)
+        imgborder = Image.new("1", (target_width, target_height), color=1)
+        horizontal_offset = target_width - self.image.width
+        imgborder.paste(self.image, (horizontal_offset, 0))
         self.image = imgborder
 
     def _print(self):
