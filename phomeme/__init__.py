@@ -8,6 +8,7 @@ from flask import Flask, request, make_response, redirect, jsonify
 from flask_cors import CORS
 
 DEVICE = os.environ["PHOMEMO_BT_MAC"]
+PAPER_SIZE = os.environ.get("PHOMEMO_PAPER_SIZE", None)
 
 
 app = Flask(__name__)
@@ -25,6 +26,14 @@ def index():
 @app.route("/<path:static>")
 def static_helper(static):
     return app.send_static_file(static)
+
+
+@app.route("/papersize")
+def paper_size():
+    if PAPER_SIZE:
+        return jsonify(PAPER_SIZE)
+    else:
+        return "No default paper size configured", 404
 
 
 @app.route("/print", methods=["POST"])
