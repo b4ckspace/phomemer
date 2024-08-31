@@ -173,6 +173,8 @@ export class CanvasPageComponent implements AfterViewInit {
         try {
             const fd = new FormData();
             fd.append('image', await this.getBlob());
+            fd.append('width', String(this.width));
+            fd.append('height', String(this.height));
             const response = await firstValueFrom(this.httpClient.post('/print', fd));
             this.messageService.add({severity: 'success', summary: 'Success', detail: 'enjoy your label'});
         } catch (e) {
