@@ -17,6 +17,10 @@ You can pass this character device into the Docker container and omit the
 `PHOMEMO_BT_MAC` setting to make phomemer use the USB connection.
 (`PHOMEMO_BT_MAC` takes precedence over USB if it is specified!).
 
+This requires that the Docker user has sufficient permission to write to
+`/dev/usb/lp0` — assign the correct group membership or modify the character
+device's permissions through a udev rule if not.
+
 `--net=host` is still required here to allow you/your users to access phomemer
 through a well-known port on the Docker host's localhost.
 
