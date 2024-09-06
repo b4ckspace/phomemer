@@ -23,7 +23,7 @@
         </p-button>
     </p-overlayPanel>
 
-    <p-button (click)="sizesPanel.toggle($event)">
+    <p-button (click)="sizesPanel.toggle($event)" [disabled]="paperSizeConfigured">
         {{ paperSize.width }} × {{ paperSize.height }} mm [{{ paperSize.shape }}]
     </p-button>
 </div>
