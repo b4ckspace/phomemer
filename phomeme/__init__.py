@@ -1,15 +1,19 @@
 from io import BytesIO
 from multiprocessing import Lock
 import os
+import pathlib
 import socket
 
 from PIL import Image, ImageDraw, ImageFont
 from flask import Flask, request, make_response, redirect, jsonify
 from flask_cors import CORS
 
-DEVICE = os.environ["PHOMEMO_BT_MAC"]
+DEVICE = os.environ.get("PHOMEMO_BT_MAC", None)
+if not DEVICE:
+    CHARDEV = '/dev/phomemo'
+    if not pathlib.Path(CHARDEV).is_char_device():
+        raise Exception('No valid printer target configured (envvar PHOMEMO_BT_MAC unset and %s is not a character device)' % CHARDEV)
 PAPER_SIZE = os.environ.get("PHOMEMO_PAPER_SIZE", None)
-
 
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 40 * 1024 * 1024
@@ -123,14 +127,18 @@ class PrintImage:
         buf += ibuf
 
         # -- send
-        sock = socket.socket(
-            socket.AF_BLUETOOTH, socket.SOCK_STREAM, socket.BTPROTO_RFCOMM
-        )
-        sock.bind((socket.BDADDR_ANY, 1))
-        sock.connect((DEVICE, 1))
-        sock.sendall(bytes(buf))
-        sock.recv(1024)
-        sock.close()
+        if DEVICE:
+            sock = socket.socket(
+                socket.AF_BLUETOOTH, socket.SOCK_STREAM, socket.BTPROTO_RFCOMM
+            )
+            sock.bind((socket.BDADDR_ANY, 1))
+            sock.connect((DEVICE, 1))
+            sock.sendall(bytes(buf))
+            sock.recv(1024)
+            sock.close()
+        else:
+            with open(CHARDEV, 'wb') as f:
+                f.write(bytes(buf))
 
     def print(self):
         with app.printlock:
