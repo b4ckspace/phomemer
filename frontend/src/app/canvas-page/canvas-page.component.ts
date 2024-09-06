@@ -41,6 +41,7 @@ const getPx = (mm: number, dpi: number) => {
 export class CanvasPageComponent implements AfterViewInit {
     @ViewChild('canvasElement') canvas?: ElementRef<HTMLCanvasElement>;
     public busy = false;
+    public paperSizeConfigured = false;
     public fabric?: fabric.Canvas;
     public ctx?: CanvasRenderingContext2D;
     public form: FormGroup;
@@ -94,7 +95,7 @@ export class CanvasPageComponent implements AfterViewInit {
         this.paperSize = SIZES[0];
     }
 
-    public ngAfterViewInit() {
+    public async ngAfterViewInit() {
         if (this.canvas) {
             this.fabric = new fabric.Canvas('canvas', {
                 backgroundColor: '#fff',
@@ -120,6 +121,12 @@ export class CanvasPageComponent implements AfterViewInit {
                 this.fabric.freeDrawingBrush.width = values.brushSize;
             }
         });
+
+        try {
+            const response = await firstValueFrom(this.httpClient.get<number>('/papersize'));
+            this.paperSize = SIZES[response];
+            this.paperSizeConfigured = true;
+        } finally {}
     }
 
     public createText() {
@@ -166,6 +173,8 @@ export class CanvasPageComponent implements AfterViewInit {
         try {
             const fd = new FormData();
             fd.append('image', await this.getBlob());
+            fd.append('width', String(this.width));
+            fd.append('height', String(this.height));
             const response = await firstValueFrom(this.httpClient.post('/print', fd));
             this.messageService.add({severity: 'success', summary: 'Success', detail: 'enjoy your label'});
         } catch (e) {
