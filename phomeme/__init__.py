@@ -1,5 +1,9 @@
+from dataclasses import dataclass
+from enum import Enum, auto
 from io import BytesIO
 from multiprocessing import Lock
+from sys import platform
+from typing import Optional
 import os
 import pathlib
 import socket
@@ -8,12 +12,8 @@ from PIL import Image, ImageDraw, ImageFont
 from flask import Flask, request, make_response, redirect, jsonify
 from flask_cors import CORS
 
-DEVICE = os.environ.get("PHOMEMO_BT_MAC", None)
-if not DEVICE:
-    CHARDEV = '/dev/phomemo'
-    if not pathlib.Path(CHARDEV).is_char_device():
-        raise Exception('No valid printer target configured (envvar PHOMEMO_BT_MAC unset and %s is not a character device)' % CHARDEV)
-PAPER_SIZE = os.environ.get("PHOMEMO_PAPER_SIZE", None)
+from . import config
+
 
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 40 * 1024 * 1024
@@ -34,21 +34,28 @@ def static_helper(static):
 
 @app.route("/papersize")
 def paper_size():
-    if PAPER_SIZE:
-        return jsonify(PAPER_SIZE)
+    if config.PHOMEMO_PAPER_SIZE:
+        return jsonify(config.PHOMEMO_PAPER_SIZE)
     else:
         return "No default paper size configured", 404
 
+@app.route("/printers")
+def printers():
+    return jsonify(config.printers)
 
 @app.route("/print", methods=["POST"])
 def handle_image():
+    printer_name = request.args.get("printer")
+
     try:
         f = request.files["image"]
         file_length = f.seek(0, os.SEEK_END)
         f.seek(0, os.SEEK_SET)
         width = int(float(request.form.get("width")))
         height = int(float(request.form.get("height")))
-        print('Received image with length %d bytes and intended print size %dx%d' % (file_length, width, height))
+        print(
+            f"Received image with length {file_length} bytes and intended print size {width}x{height}"
+        )
         img = Image.open(f)
     except Exception as e:
         print(e)
@@ -56,7 +63,8 @@ def handle_image():
 
     try:
         print_image = PrintImage(img, offset=True, resize=(width, height))
-        print_image.print()
+        printer = Printer(device=config.printers[0]["address"] if printer_name is None else printer_name)
+        printer.print(print_image)
     except Exception as e:
         print(e)
         return f"Error printing image: {e}", 500
@@ -64,18 +72,53 @@ def handle_image():
     return jsonify("ok")
 
 
+class DeviceType(Enum):
+    BLUETOOTH = auto()
+    CHARDEV = auto()
+
+
+class PrinterDevice:
+    path: Optional[str]
+    device_type: DeviceType
+
+    def __init__(self, path: Optional[str] = None, device_type: Optional[DeviceType] = None):
+        if path is None:
+            self.path = "/dev/phomemo"
+
+            if device_type is None:
+                self.device_type = DeviceType.CHARDEV
+
+            if not pathlib.Path(self.path).is_char_device():
+                raise Exception(
+                    f"No valid printer target configured (envvar PHOMEMO_BT_MAC unset and {CHARDEV} is not a character device)"
+                )
+        else:
+            self.path = path
+
+            if device_type is None:
+                self.device_type = DeviceType.BLUETOOTH
+
+    @property
+    def address(self):
+        return self.path
+
+    @address.setter
+    def address(self, value):
+        self.path = value
+
+
 class PrintImage:
     image: Image
 
     def __init__(self, image: Image, offset=True, resize=(323, 240)):
         self.image = image
-        print('Original image size:', image.size)
+        print("Original image size:", image.size)
         if resize:
             self._resize(resize[0], resize[1])
-            print('Image size after resize:', self.image.size)
+            print("Image size after resize:", self.image.size)
         if offset:
             self._offset()
-            print('Image size after offset:', self.image.size)
+            print("Image size after offset:", self.image.size)
 
     def _resize(self, target_width, target_height):
         img = self.image
@@ -103,8 +146,23 @@ class PrintImage:
         imgborder.paste(self.image, (horizontal_offset, 0))
         self.image = imgborder
 
-    def _print(self):
-        img = self.image.convert("1")
+
+class Printer:
+    name: str
+    device: PrinterDevice
+
+    def __init__(
+        self,
+        device: Optional[str] = None,
+        name: Optional[str] = None,
+    ):
+        self.device = PrinterDevice(path=device)
+
+        if name is None:
+            self.name = self.device.address
+
+    def _print(self, image: PrintImage):
+        img = image.image.convert("1")
 
         buf = []
         buf += [0x1B, 0x40]
@@ -127,19 +185,19 @@ class PrintImage:
         buf += ibuf
 
         # -- send
-        if DEVICE:
+        if self.device.device_type == DeviceType.BLUETOOTH:
             sock = socket.socket(
                 socket.AF_BLUETOOTH, socket.SOCK_STREAM, socket.BTPROTO_RFCOMM
             )
             sock.bind((socket.BDADDR_ANY, 1))
-            sock.connect((DEVICE, 1))
+            sock.connect((self.device.address, 1))
             sock.sendall(bytes(buf))
             sock.recv(1024)
             sock.close()
         else:
-            with open(CHARDEV, 'wb') as f:
+            with open(self.device.path, "wb") as f:
                 f.write(bytes(buf))
 
-    def print(self):
+    def print(self, image: PrintImage):
         with app.printlock:
-            self._print()
+            self._print(image)
