@@ -1,8 +1,6 @@
-from dataclasses import dataclass
 from enum import Enum, auto
 from io import BytesIO
 from multiprocessing import Lock
-from sys import platform
 from typing import Optional
 import os
 import pathlib
@@ -39,9 +37,11 @@ def paper_size():
     else:
         return "No default paper size configured", 404
 
+
 @app.route("/printers")
 def printers():
     return jsonify(config.printers)
+
 
 @app.route("/print", methods=["POST"])
 def handle_image():
@@ -63,7 +63,11 @@ def handle_image():
 
     try:
         print_image = PrintImage(img, offset=True, resize=(width, height))
-        printer = Printer(device=config.printers[0]["address"] if printer_name is None else printer_name)
+        printer = Printer(
+            device=(
+                config.printers[0]["address"] if printer_name is None else printer_name
+            )
+        )
         printer.print(print_image)
     except Exception as e:
         print(e)
@@ -81,7 +85,9 @@ class PrinterDevice:
     path: Optional[str]
     device_type: DeviceType
 
-    def __init__(self, path: Optional[str] = None, device_type: Optional[DeviceType] = None):
+    def __init__(
+        self, path: Optional[str] = None, device_type: Optional[DeviceType] = None
+    ):
         if path is None:
             self.path = "/dev/phomemo"
 

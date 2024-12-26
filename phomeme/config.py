@@ -3,17 +3,11 @@ import os
 from dotenv import dotenv_values
 
 # List of valid config options
-options = [
-    "PHOMEMO_BT_MAC",
-    "PHOMEMO_PAPER_SIZE"
-]
+options = ["PHOMEMO_BT_MAC", "PHOMEMO_PAPER_SIZE"]
 
 # Load config values from .env and environment variables
 # Note: This reads all environment variables
-config = {
-    **dotenv_values(".env"),
-    **os.environ
-}
+config = {**dotenv_values(".env"), **os.environ}
 
 # Set None as default for unset options
 for key in options:
