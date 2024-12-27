@@ -1,6 +1,6 @@
 <p-toast></p-toast>
 
-{{ apiService.getPrinters() | json }}
+{{ printerList() | json }}
 <div class="paper">
     <p-overlayPanel #sizesPanel>
         <form class="paper-size-form" [formGroup]="paperSizeForm">

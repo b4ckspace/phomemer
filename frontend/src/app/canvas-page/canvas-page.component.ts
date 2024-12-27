@@ -2,7 +2,6 @@ import {
     AfterViewInit,
     Component,
     ElementRef,
-    inject,
     OnDestroy,
     signal,
     ViewChild,
@@ -152,6 +151,8 @@ export class CanvasPageComponent implements AfterViewInit, OnDestroy {
             );
             this.paperSize = SIZES[response];
             this.paperSizeConfigured = true;
+        } catch (e) {
+            console.log(e);
         } finally {
         }
     }
