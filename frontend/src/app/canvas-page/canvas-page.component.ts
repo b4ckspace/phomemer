@@ -14,14 +14,16 @@ import {
     Validators,
 } from '@angular/forms';
 import { CheckboxModule } from 'primeng/checkbox';
-import { JsonPipe, NgForOf, NgIf } from '@angular/common';
+import { JsonPipe } from '@angular/common';
 import { SliderModule } from 'primeng/slider';
+import { RadioButtonModule } from 'primeng/radiobutton';
 import { ButtonModule } from 'primeng/button';
 import { HttpClient } from '@angular/common/http';
 import { debounceTime, firstValueFrom, Subject, takeUntil, tap } from 'rxjs';
 import { ChipModule } from 'primeng/chip';
 import { DropdownModule } from 'primeng/dropdown';
 import { MessageService } from 'primeng/api';
+import { MessageModule } from 'primeng/message';
 import { ToastModule } from 'primeng/toast';
 import { PaperShape, PaperSize, SIZES } from '../data/paper-sizes';
 import { OverlayPanelModule } from 'primeng/overlaypanel';
@@ -41,15 +43,15 @@ const getPx = (mm: number, dpi: number) => {
         JsonPipe,
         ReactiveFormsModule,
         CheckboxModule,
-        NgIf,
         SliderModule,
         ButtonModule,
         ChipModule,
         DropdownModule,
         ToastModule,
         OverlayPanelModule,
-        NgForOf,
         InputTextModule,
+        RadioButtonModule,
+        MessageModule,
     ],
     templateUrl: './canvas-page.component.html',
     styleUrl: './canvas-page.component.scss',
@@ -90,6 +92,7 @@ export class CanvasPageComponent implements AfterViewInit, OnDestroy {
             brushSize: [8],
             fontSize: [30],
             fontFamily: [this.fonts[0]],
+            selectedPrinter: [undefined, Validators.required],
         });
 
         this.paperSizeForm = this.formBuilder.group({
@@ -115,10 +118,13 @@ export class CanvasPageComponent implements AfterViewInit, OnDestroy {
     }
 
     public async ngAfterViewInit() {
-        this.apiService.getPrinters().pipe(
-            takeUntil(this.removeObs),
-            tap((printerList) => this.printerList.set(printerList)),
-        );
+        this.apiService
+            .getPrinters()
+            .pipe(
+                takeUntil(this.removeObs),
+                tap((printerList) => this.printerList.set(printerList)),
+            )
+            .subscribe();
         if (this.canvas) {
             this.fabric = new fabric.Canvas('canvas', {
                 backgroundColor: '#fff',
@@ -145,16 +151,16 @@ export class CanvasPageComponent implements AfterViewInit, OnDestroy {
             }
         });
 
-        try {
-            const response = await firstValueFrom(
-                this.httpClient.get<number>('/papersize'),
-            );
-            this.paperSize = SIZES[response];
-            this.paperSizeConfigured = true;
-        } catch (e) {
-            console.log(e);
-        } finally {
-        }
+        //        try {
+        //            const response = await firstValueFrom(
+        //                this.httpClient.get<number>('/papersize'),
+        //            );
+        //            this.paperSize = SIZES[response];
+        //            this.paperSizeConfigured = true;
+        //        } catch (e) {
+        //            console.log(e);
+        //        } finally {
+        //        }
     }
 
     public createText() {
@@ -208,6 +214,8 @@ export class CanvasPageComponent implements AfterViewInit, OnDestroy {
             fd.append('image', await this.getBlob());
             fd.append('width', String(this.width));
             fd.append('height', String(this.height));
+            fd.append('printers', this.form.get('form')?.getRawValue());
+
             const response = await firstValueFrom(
                 this.httpClient.post('/print', fd),
             );

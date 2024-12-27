@@ -1,6 +1,4 @@
 <p-toast></p-toast>
-
-{{ printerList() | json }}
 <div class="paper">
     <p-overlayPanel #sizesPanel>
         <form class="paper-size-form" [formGroup]="paperSizeForm">
@@ -18,13 +16,14 @@
             </label>
         </form>
 
-        <p-button
-            *ngFor="let size of SIZES"
-            [text]="true"
-            (click)="paperSize = size; sizesPanel.toggle($event)"
-        >
-            {{ size.width }} × {{ size.height }} mm [{{ size.shape }}]
-        </p-button>
+        @for (size of SIZES; track size) {
+            <p-button
+                [text]="true"
+                (click)="paperSize = size; sizesPanel.toggle($event)"
+            >
+                {{ size.width }} × {{ size.height }} mm [{{ size.shape }}]
+            </p-button>
+        }
     </p-overlayPanel>
 
     <p-button
@@ -42,60 +41,88 @@
         <canvas id="canvas" #canvasElement></canvas>
         <div class="canvas-mask">
             <div class="label"></div>
-            <div
-                *ngIf="paperSize.shape === PaperShape.Split"
-                class="label"
-            ></div>
+            @if (paperSize.shape === PaperShape.Split) {
+                <div class="label"></div>
+            }
         </div>
     </div>
 </div>
 
-<form class="controls" *ngIf="form" [formGroup]="form">
-    <div class="group group-drawing">
-        <label class="item">
-            <p-checkbox
-                formControlName="drawingMode"
-                [binary]="true"
-                inputId="drawingMode"
-            ></p-checkbox>
-            enable drawing
-        </label>
-        <p-slider
-            class="item grow"
-            [min]="1"
-            [max]="30"
-            formControlName="brushSize"
-        ></p-slider>
-        <div class="brush-preview">
-            <div
-                class="brush"
-                [style.width]="form.get('brushSize')?.value + 'px'"
-                [style.height]="form.get('brushSize')?.value + 'px'"
-            ></div>
-            <span class="size">{{ form.get("brushSize")?.value }}</span>
+@if (form) {
+    <form class="controls" [formGroup]="form">
+        <div class="flex flex-column gap-4">
+            @for (printer of printerList(); track printer) {
+                <div class="field-checkbox">
+                    <p-radioButton
+                        [class.is-invalid]="
+                            Selectedline.dirty && Selectedline.touched
+                        "
+                        [inputId]="printer.address"
+                        [value]="printer"
+                        formControlName="selectedPrinter"
+                    />
+                    <label [for]="printer.address" class="ml-2">
+                        {{ printer.name }}
+                    </label>
+                </div>
+            }
+            <!--            {{ selectedPrinter | json }}
+            @if (selectedPrinter.dirty && selectedPrinter.touched) {
+   -->
+            <p-message
+                severity="error"
+                icon="pi pi-times-circle"
+                styleClass="mb-2"
+                >Printer is missing</p-message
+            >
         </div>
-    </div>
-    <div class="group group-text">
-        <p-button size="small" (click)="createText()">+ text</p-button>
-        <p-slider
-            class="item grow"
-            [min]="5"
-            [max]="72"
-            formControlName="fontSize"
-        ></p-slider>
-        <p-chip label="{{ form.get('fontSize')?.value }}"></p-chip>
-    </div>
-    <div class="group group-text">
-        <p-dropdown
-            formControlName="fontFamily"
-            [editable]="true"
-            [options]="fonts"
-        ></p-dropdown>
-    </div>
-    <div class="group group-text">
-        <p-button size="small" (click)="createImg()">+ img</p-button>
-    </div>
-</form>
+        <h1>asdfasfd</h1>
+        <div class="group group-drawing">
+            <label class="item">
+                <p-checkbox
+                    formControlName="drawingMode"
+                    [binary]="true"
+                    inputId="drawingMode"
+                ></p-checkbox>
+                enable drawing
+            </label>
+            <p-slider
+                class="item grow"
+                [min]="1"
+                [max]="30"
+                formControlName="brushSize"
+            ></p-slider>
+            <div class="brush-preview">
+                <div
+                    class="brush"
+                    [style.width]="form.get('brushSize')?.value + 'px'"
+                    [style.height]="form.get('brushSize')?.value + 'px'"
+                ></div>
+                <span class="size">{{ form.get("brushSize")?.value }}</span>
+            </div>
+        </div>
+        <div class="group group-text">
+            <p-button size="small" (click)="createText()">+ text</p-button>
+            <p-slider
+                class="item grow"
+                [min]="5"
+                [max]="72"
+                formControlName="fontSize"
+            ></p-slider>
+            <p-chip label="{{ form.get('fontSize')?.value }}"></p-chip>
+        </div>
+        <div class="group group-text">
+            <p-dropdown
+                formControlName="fontFamily"
+                [editable]="true"
+                [options]="fonts"
+            ></p-dropdown>
+        </div>
+        <div class="group group-text">
+            <p-button size="small" (click)="createImg()">+ img</p-button>
+        </div>
+    </form>
+}
 
 <div class="actions">
     <p-button [disabled]="busy" severity="danger" size="large" (click)="clear()"
