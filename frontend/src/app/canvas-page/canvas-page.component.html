@@ -1,30 +1,39 @@
 <p-toast></p-toast>
 
+{{ apiService.getPrinters() | json }}
 <div class="paper">
     <p-overlayPanel #sizesPanel>
         <form class="paper-size-form" [formGroup]="paperSizeForm">
             <label>
                 <div>width</div>
-                <input pInputText formControlName="width">
+                <input pInputText formControlName="width" />
             </label>
             <label>
                 <div>height</div>
-                <input pInputText formControlName="height">
+                <input pInputText formControlName="height" />
             </label>
             <label>
                 <div>dpi</div>
-                <input pInputText formControlName="dpi">
+                <input pInputText formControlName="dpi" />
             </label>
         </form>
 
-        <p-button *ngFor="let size of SIZES" [text]="true"
-                  (click)="paperSize = size; sizesPanel.toggle($event)">
+        <p-button
+            *ngFor="let size of SIZES"
+            [text]="true"
+            (click)="paperSize = size; sizesPanel.toggle($event)"
+        >
             {{ size.width }} × {{ size.height }} mm [{{ size.shape }}]
         </p-button>
     </p-overlayPanel>
 
-    <p-button (click)="sizesPanel.toggle($event)" [disabled]="paperSizeConfigured">
-        {{ paperSize.width }} × {{ paperSize.height }} mm [{{ paperSize.shape }}]
+    <p-button
+        (click)="sizesPanel.toggle($event)"
+        [disabled]="paperSizeConfigured"
+    >
+        {{ paperSize.width }} × {{ paperSize.height }} mm [{{
+            paperSize.shape
+        }}]
     </p-button>
 </div>
 
@@ -33,7 +42,10 @@
         <canvas id="canvas" #canvasElement></canvas>
         <div class="canvas-mask">
             <div class="label"></div>
-            <div *ngIf="paperSize.shape === PaperShape.Split" class="label"></div>
+            <div
+                *ngIf="paperSize.shape === PaperShape.Split"
+                class="label"
+            ></div>
         </div>
     </div>
 </div>
@@ -41,25 +53,44 @@
 <form class="controls" *ngIf="form" [formGroup]="form">
     <div class="group group-drawing">
         <label class="item">
-            <p-checkbox formControlName="drawingMode" [binary]="true" inputId="drawingMode"></p-checkbox>
+            <p-checkbox
+                formControlName="drawingMode"
+                [binary]="true"
+                inputId="drawingMode"
+            ></p-checkbox>
             enable drawing
         </label>
-        <p-slider class="item grow" [min]="1" [max]="30" formControlName="brushSize"></p-slider>
+        <p-slider
+            class="item grow"
+            [min]="1"
+            [max]="30"
+            formControlName="brushSize"
+        ></p-slider>
         <div class="brush-preview">
-            <div class="brush"
-                 [style.width]="form.get('brushSize')?.value + 'px'"
-                 [style.height]="form.get('brushSize')?.value + 'px'"
+            <div
+                class="brush"
+                [style.width]="form.get('brushSize')?.value + 'px'"
+                [style.height]="form.get('brushSize')?.value + 'px'"
             ></div>
-            <span class="size">{{ form.get('brushSize')?.value }}</span>
+            <span class="size">{{ form.get("brushSize")?.value }}</span>
         </div>
     </div>
     <div class="group group-text">
         <p-button size="small" (click)="createText()">+ text</p-button>
-        <p-slider class="item grow" [min]="5" [max]="72" formControlName="fontSize"></p-slider>
+        <p-slider
+            class="item grow"
+            [min]="5"
+            [max]="72"
+            formControlName="fontSize"
+        ></p-slider>
         <p-chip label="{{ form.get('fontSize')?.value }}"></p-chip>
     </div>
     <div class="group group-text">
-        <p-dropdown formControlName="fontFamily" [editable]="true" [options]="fonts"></p-dropdown>
+        <p-dropdown
+            formControlName="fontFamily"
+            [editable]="true"
+            [options]="fonts"
+        ></p-dropdown>
     </div>
     <div class="group group-text">
         <p-button size="small" (click)="createImg()">+ img</p-button>
@@ -67,7 +98,14 @@
 </form>
 
 <div class="actions">
-    <p-button [disabled]="busy" severity="danger" size="large" (click)="clear()">clear</p-button>
-    <p-button [disabled]="busy" severity="success" size="large" (click)="print()">print</p-button>
+    <p-button [disabled]="busy" severity="danger" size="large" (click)="clear()"
+        >clear</p-button
+    >
+    <p-button
+        [disabled]="busy"
+        severity="success"
+        size="large"
+        (click)="print()"
+        >print</p-button
+    >
 </div>
-
