@@ -60,7 +60,11 @@ export class CanvasPageComponent implements AfterViewInit, OnDestroy {
         { severity: 'error', summary: 'Printer is not selected' },
     ];
     readonly infoMessages: Message[] = [
-        { severity: 'warn', summary: 'No Printer is reachable' },
+        {
+            severity: 'warn',
+            summary:
+                'Please connect any Printer, because no Printer is reachable',
+        },
     ];
     @ViewChild('canvasElement') canvas?: ElementRef<HTMLCanvasElement>;
     public busy = false;
