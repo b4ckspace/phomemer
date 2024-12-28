@@ -30,12 +30,6 @@ def static_helper(static):
     return app.send_static_file(static)
 
 
-@app.route("/papersize")
-def paper_size():
-    if config.PHOMEMO_PAPER_SIZE:
-        return jsonify(config.PHOMEMO_PAPER_SIZE)
-    else:
-        return "No default paper size configured", 404
 
 
 @app.route("/printers")
