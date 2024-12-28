@@ -1,12 +1,4 @@
-import { JsonPipe } from '@angular/common';
-import {
-    AfterViewInit,
-    Component,
-    ElementRef,
-    inject,
-    OnDestroy,
-    ViewChild,
-} from '@angular/core';
+import { AfterViewInit, Component, ElementRef, inject, OnDestroy, ViewChild } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import {
     FormBuilder,
@@ -15,18 +7,18 @@ import {
     Validators,
 } from '@angular/forms';
 import { fabric } from 'fabric';
-import { Message, MessageService } from 'primeng/api';
+import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
+import {Message} from 'primeng/message';
 import { ChipModule } from 'primeng/chip';
 import { DropdownModule } from 'primeng/dropdown';
 import { InputTextModule } from 'primeng/inputtext';
-import { MessagesModule } from 'primeng/messages';
 import { OverlayPanelModule } from 'primeng/overlaypanel';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { SliderModule } from 'primeng/slider';
 import { ToastModule } from 'primeng/toast';
-import { catchError, debounceTime, finalize, Subject } from 'rxjs';
+import { catchError, debounceTime, finalize, of, Subject } from 'rxjs';
 import { ApiService } from '../api-service/api.service';
 import { PaperShape, PaperSize, SIZES } from '../data/paper-sizes';
 
@@ -36,9 +28,7 @@ const getPx = (mm: number, dpi: number) => {
 
 @Component({
     selector: 'app-canvas-page',
-    standalone: true,
     imports: [
-        JsonPipe,
         ReactiveFormsModule,
         CheckboxModule,
         SliderModule,
@@ -49,23 +39,13 @@ const getPx = (mm: number, dpi: number) => {
         OverlayPanelModule,
         InputTextModule,
         RadioButtonModule,
-        MessagesModule,
+        Message,
     ],
     templateUrl: './canvas-page.component.html',
     styleUrl: './canvas-page.component.scss',
 })
 export class CanvasPageComponent implements AfterViewInit, OnDestroy {
     private readonly apiService = inject(ApiService);
-    readonly errorMessages: Message[] = [
-        { severity: 'error', summary: 'Printer is not selected' },
-    ];
-    readonly infoMessages: Message[] = [
-        {
-            severity: 'warn',
-            summary:
-                'Please connect any Printer, because no Printer is reachable',
-        },
-    ];
     @ViewChild('canvasElement') canvas?: ElementRef<HTMLCanvasElement>;
     public busy = false;
     public paperSizeConfigured = false;
@@ -76,7 +56,7 @@ export class CanvasPageComponent implements AfterViewInit, OnDestroy {
     public width = 0;
     public height = 0;
     public fonts = ['Noto Sans', 'Noto Serif', 'Comic Sans MS'];
-    printerList = toSignal(this.apiService.getPrinters(), { initialValue: [] });
+    printerList = toSignal(this.apiService.getPrinters().pipe(catchError(()=> of([]))), { initialValue: [] });
 
     public set paperSize(size: PaperSize) {
         this.paperSizeForm.setValue(size);
@@ -150,18 +130,7 @@ export class CanvasPageComponent implements AfterViewInit, OnDestroy {
                 this.fabric.freeDrawingBrush.width = values.brushSize;
             }
         });
-
-        //        try {
-        //            const response = await firstValueFrom(
-        //                this.httpClient.get<number>('/papersize'),
-        //            );
-        //            this.paperSize = SIZES[response];
-        //            this.paperSizeConfigured = true;
-        //        } catch (e) {
-        //            console.log(e);
-        //        } finally {
-        //        }
-    }
+   }
 
     public createText() {
         this.form.patchValue({ drawingMode: false });
