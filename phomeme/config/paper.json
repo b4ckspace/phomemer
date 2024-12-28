@@ -1,0 +1,58 @@
+{
+  "rect_40_30": {
+    "name": "rect_40_30",
+    "shape": "rectangular",
+    "width": 40,
+    "height": 30,
+    "dpi": 204
+  },
+  "rect_50_20": {
+    "name": "rect_50_20",
+    "shape": "rectangular",
+    "width": 50,
+    "height": 20,
+    "dpi": 204
+  },
+  "rect_30_20": {
+    "name": "rect_30_20",
+    "shape": "rectangular",
+    "width": 30,
+    "height": 20,
+    "dpi": 204
+  },
+  "rect_40_40": {
+    "name": "rect_40_40",
+    "shape": "rectangular",
+    "width": 40,
+    "height": 40,
+    "dpi": 204
+  },
+  "rect_50_50": {
+    "name": "rect_50_50",
+    "shape": "rectangular",
+    "width": 50,
+    "height": 50,
+    "dpi": 204
+  },
+  "circ_40": {
+    "name": "circ_40",
+    "shape": "circular",
+    "width": 40,
+    "height": 40,
+    "dpi": 204
+  },
+  "circ_50": {
+    "name": "circ_50",
+    "shape": "circular",
+    "width": 50,
+    "height": 50,
+    "dpi": 204
+  },
+  "split_42_10": {
+    "name": "split_42_10",
+    "shape": "split",
+    "width": 42,
+    "height": 10,
+    "dpi": 204
+  }
+}
