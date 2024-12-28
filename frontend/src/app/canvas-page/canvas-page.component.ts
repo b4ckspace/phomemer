@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, ElementRef, inject, OnDestroy, ViewChild } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import {
     FormBuilder,
     FormGroup,
@@ -44,7 +44,7 @@ const getPx = (mm: number, dpi: number) => {
     templateUrl: './canvas-page.component.html',
     styleUrl: './canvas-page.component.scss',
 })
-export class CanvasPageComponent implements AfterViewInit, OnDestroy {
+export class CanvasPageComponent implements AfterViewInit {
     private readonly apiService = inject(ApiService);
     @ViewChild('canvasElement') canvas?: ElementRef<HTMLCanvasElement>;
     public busy = false;
@@ -68,7 +68,6 @@ export class CanvasPageComponent implements AfterViewInit, OnDestroy {
 
     protected readonly PaperShape = PaperShape;
     protected readonly SIZES = SIZES;
-    private readonly removeObs = new Subject<void>();
 
     constructor(
         private readonly formBuilder: FormBuilder,
@@ -98,10 +97,6 @@ export class CanvasPageComponent implements AfterViewInit, OnDestroy {
         });
 
         this.paperSize = SIZES[0];
-    }
-    ngOnDestroy(): void {
-        this.removeObs.next();
-        this.removeObs.complete();
     }
 
     public async ngAfterViewInit() {
@@ -185,6 +180,7 @@ export class CanvasPageComponent implements AfterViewInit, OnDestroy {
             this.apiService
                 .print(fd)
                 .pipe(
+                    takeUntilDestroyed(),
                     catchError((error) => this.handlePrintError(error)),
                     finalize(() => this.handleFinallyPrint()),
                 )
