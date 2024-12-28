@@ -54,9 +54,6 @@
             @for (printer of printerList(); track printer) {
                 <div class="field-checkbox">
                     <p-radioButton
-                        [class.is-invalid]="
-                            Selectedline.dirty && Selectedline.touched
-                        "
                         [inputId]="printer.address"
                         [value]="printer"
                         formControlName="selectedPrinter"
@@ -66,17 +63,17 @@
                     </label>
                 </div>
             }
-            <!--            {{ selectedPrinter | json }}
-            @if (selectedPrinter.dirty && selectedPrinter.touched) {
-   -->
-            <p-message
-                severity="error"
-                icon="pi pi-times-circle"
-                styleClass="mb-2"
-                >Printer is missing</p-message
-            >
+            @if (
+                form.get("selectedPrinter")?.invalid &&
+                form.get("selectedPrinter")?.touched
+            ) {
+                <p-messages
+                    [enableService]="false"
+                    [closable]="false"
+                    [(value)]="messages"
+                ></p-messages>
+            }
         </div>
-        <h1>asdfasfd</h1>
         <div class="group group-drawing">
             <label class="item">
                 <p-checkbox

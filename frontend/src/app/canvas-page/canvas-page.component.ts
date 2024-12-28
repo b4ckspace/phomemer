@@ -6,6 +6,7 @@ import {
     signal,
     ViewChild,
 } from '@angular/core';
+import { MessagesModule } from 'primeng/messages';
 import { fabric } from 'fabric';
 import {
     FormBuilder,
@@ -22,14 +23,12 @@ import { HttpClient } from '@angular/common/http';
 import { debounceTime, firstValueFrom, Subject, takeUntil, tap } from 'rxjs';
 import { ChipModule } from 'primeng/chip';
 import { DropdownModule } from 'primeng/dropdown';
-import { MessageService } from 'primeng/api';
-import { MessageModule } from 'primeng/message';
+import { Message, MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { PaperShape, PaperSize, SIZES } from '../data/paper-sizes';
 import { OverlayPanelModule } from 'primeng/overlaypanel';
 import { InputTextModule } from 'primeng/inputtext';
 import { ApiService } from '../api-service/api.service';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Printers } from '../data/printers.model';
 
 const getPx = (mm: number, dpi: number) => {
@@ -51,12 +50,15 @@ const getPx = (mm: number, dpi: number) => {
         OverlayPanelModule,
         InputTextModule,
         RadioButtonModule,
-        MessageModule,
+        MessagesModule,
     ],
     templateUrl: './canvas-page.component.html',
     styleUrl: './canvas-page.component.scss',
 })
 export class CanvasPageComponent implements AfterViewInit, OnDestroy {
+    messages: Message[] = [
+        { severity: 'error', summary: 'Dynamic Warning Message' },
+    ];
     @ViewChild('canvasElement') canvas?: ElementRef<HTMLCanvasElement>;
     public busy = false;
     public paperSizeConfigured = false;
@@ -210,20 +212,23 @@ export class CanvasPageComponent implements AfterViewInit, OnDestroy {
     public async print() {
         this.busy = true;
         try {
-            const fd = new FormData();
-            fd.append('image', await this.getBlob());
-            fd.append('width', String(this.width));
-            fd.append('height', String(this.height));
-            fd.append('printers', this.form.get('form')?.getRawValue());
+            this.form.markAllAsTouched();
+            if (this.form.valid) {
+                const fd = new FormData();
+                fd.append('image', await this.getBlob());
+                fd.append('width', String(this.width));
+                fd.append('height', String(this.height));
+                fd.append('printers', this.form.get('form')?.getRawValue());
 
-            const response = await firstValueFrom(
-                this.httpClient.post('/print', fd),
-            );
-            this.messageService.add({
-                severity: 'success',
-                summary: 'Success',
-                detail: 'enjoy your label',
-            });
+                const response = await firstValueFrom(
+                    this.httpClient.post('/print', fd),
+                );
+                this.messageService.add({
+                    severity: 'success',
+                    summary: 'Success',
+                    detail: 'enjoy your label',
+                });
+            }
         } catch (e) {
             console.error(e);
             this.messageService.add({

@@ -1,4 +1,9 @@
-*, *::before, *::after {
+@import "primeng/resources/themes/lara-dark-purple/theme.css";
+@import "primeng/resources/primeng.css";
+
+*,
+*::before,
+*::after {
     box-sizing: inherit;
 }
 
