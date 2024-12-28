@@ -1,4 +1,12 @@
-import { AfterViewInit, Component, ElementRef, inject, OnDestroy, ViewChild } from '@angular/core';
+import {
+    AfterViewInit,
+    Component,
+    ElementRef,
+    inject,
+    OnDestroy,
+    signal,
+    ViewChild,
+} from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import {
     FormBuilder,
@@ -10,7 +18,7 @@ import { fabric } from 'fabric';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
-import {Message} from 'primeng/message';
+import { Message } from 'primeng/message';
 import { ChipModule } from 'primeng/chip';
 import { DropdownModule } from 'primeng/dropdown';
 import { InputTextModule } from 'primeng/inputtext';
@@ -18,10 +26,9 @@ import { OverlayPanelModule } from 'primeng/overlaypanel';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { SliderModule } from 'primeng/slider';
 import { ToastModule } from 'primeng/toast';
-import { catchError, debounceTime, finalize, of, Subject } from 'rxjs';
+import { catchError, debounceTime, finalize, of, Subject, tap } from 'rxjs';
 import { ApiService } from '../api-service/api.service';
-import { PaperShape, PaperSize, SIZES } from '../data/paper-sizes';
-
+import { Printers } from '../data/printers.model';
 const getPx = (mm: number, dpi: number) => {
     return (mm / 25.4) * dpi;
 };
@@ -52,22 +59,18 @@ export class CanvasPageComponent implements AfterViewInit {
     public fabric?: fabric.Canvas;
     public ctx?: CanvasRenderingContext2D;
     public form: FormGroup;
-    public paperSizeForm: FormGroup;
     public width = 0;
     public height = 0;
     public fonts = ['Noto Sans', 'Noto Serif', 'Comic Sans MS'];
-    printerList = toSignal(this.apiService.getPrinters().pipe(catchError(()=> of([]))), { initialValue: [] });
-
-    public set paperSize(size: PaperSize) {
-        this.paperSizeForm.setValue(size);
-    }
-
-    public get paperSize(): PaperSize {
-        return this.paperSizeForm.value;
-    }
-
-    protected readonly PaperShape = PaperShape;
-    protected readonly SIZES = SIZES;
+    currentPrinter = signal<Printers | undefined>(undefined);
+    printerList = toSignal(
+        this.apiService.getPrinters().pipe(
+            catchError(() => of([])),
+            tap((list) => this.currentPrinter.set(list[0])),
+            tap((list) => this.form.get('selectedPrinter')?.setValue(list[0])),
+        ),
+        { initialValue: [] },
+    );
 
     constructor(
         private readonly formBuilder: FormBuilder,
@@ -80,23 +83,6 @@ export class CanvasPageComponent implements AfterViewInit {
             fontFamily: [this.fonts[0]],
             selectedPrinter: [undefined, Validators.required],
         });
-
-        this.paperSizeForm = this.formBuilder.group({
-            width: [null, [Validators.required]],
-            height: [null, [Validators.required]],
-            dpi: [null, [Validators.required]],
-            shape: [null, [Validators.required]],
-        });
-
-        this.paperSizeForm.valueChanges.subscribe((size) => {
-            this.width = getPx(size.width, size.dpi);
-            this.height = getPx(size.height, size.dpi);
-            this.fabric?.setWidth(this.width);
-            this.fabric?.setHeight(this.height);
-            this.fabric?.renderAll();
-        });
-
-        this.paperSize = SIZES[0];
     }
 
     public async ngAfterViewInit() {
@@ -119,13 +105,22 @@ export class CanvasPageComponent implements AfterViewInit {
 
         this.form.valueChanges.pipe(debounceTime(50)).subscribe((values) => {
             console.log(values);
+            if (values.selectedPrinter) {
+                this.currentPrinter.set(values.selectedPrinter);
+                const { width, height, dpi } = values.selectedPrinter.paper;
+                this.width = getPx(width, dpi);
+                this.height = getPx(height, dpi);
+                this.fabric?.setWidth(this.width);
+                this.fabric?.setHeight(this.height);
+                this.fabric?.renderAll();
+            }
 
             if (this.fabric) {
                 this.fabric.isDrawingMode = values.drawingMode;
                 this.fabric.freeDrawingBrush.width = values.brushSize;
             }
         });
-   }
+    }
 
     public createText() {
         this.form.patchValue({ drawingMode: false });
@@ -172,21 +167,25 @@ export class CanvasPageComponent implements AfterViewInit {
     }
 
     public async print() {
-        this.busy = true;
         this.form.markAllAsTouched();
         if (this.form.valid) {
+            this.busy = true;
             const fd = new FormData();
             await this.preparePrint(fd);
             this.apiService
                 .print(fd)
                 .pipe(
-                    takeUntilDestroyed(),
                     catchError((error) => this.handlePrintError(error)),
                     finalize(() => this.handleFinallyPrint()),
                 )
                 .subscribe((_) => this.handleSuccessPrint());
         }
     }
+    private async preparePrint(fd: FormData) {
+        fd.append('image', await this.getBlob());
+        fd.append('printers', JSON.stringify(this.currentPrinter()));
+    }
+
     private handleSuccessPrint(): void {
         this.messageService.add({
             severity: 'success',
@@ -198,19 +197,11 @@ export class CanvasPageComponent implements AfterViewInit {
         this.busy = false;
     }
     private handlePrintError(error: any): any {
-        console.error(error);
         this.messageService.add({
             severity: 'error',
             summary: 'oof',
             detail: (error as any).message ? (error as any).message : '???',
         });
-    }
-
-    private async preparePrint(fd: FormData) {
-        fd.append('image', await this.getBlob());
-        fd.append('width', String(this.width));
-        fd.append('height', String(this.height));
-        fd.append('printers', this.form.get('form')?.getRawValue());
     }
 
     public clear() {
