@@ -1,35 +1,34 @@
+import { JsonPipe } from '@angular/common';
 import {
     AfterViewInit,
     Component,
     ElementRef,
+    inject,
     OnDestroy,
-    signal,
     ViewChild,
 } from '@angular/core';
-import { MessagesModule } from 'primeng/messages';
-import { fabric } from 'fabric';
+import { toSignal } from '@angular/core/rxjs-interop';
 import {
     FormBuilder,
     FormGroup,
     ReactiveFormsModule,
     Validators,
 } from '@angular/forms';
-import { CheckboxModule } from 'primeng/checkbox';
-import { JsonPipe } from '@angular/common';
-import { SliderModule } from 'primeng/slider';
-import { RadioButtonModule } from 'primeng/radiobutton';
+import { fabric } from 'fabric';
+import { Message, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
-import { HttpClient } from '@angular/common/http';
-import { debounceTime, firstValueFrom, Subject, takeUntil, tap } from 'rxjs';
+import { CheckboxModule } from 'primeng/checkbox';
 import { ChipModule } from 'primeng/chip';
 import { DropdownModule } from 'primeng/dropdown';
-import { Message, MessageService } from 'primeng/api';
-import { ToastModule } from 'primeng/toast';
-import { PaperShape, PaperSize, SIZES } from '../data/paper-sizes';
-import { OverlayPanelModule } from 'primeng/overlaypanel';
 import { InputTextModule } from 'primeng/inputtext';
+import { MessagesModule } from 'primeng/messages';
+import { OverlayPanelModule } from 'primeng/overlaypanel';
+import { RadioButtonModule } from 'primeng/radiobutton';
+import { SliderModule } from 'primeng/slider';
+import { ToastModule } from 'primeng/toast';
+import { catchError, debounceTime, finalize, Subject } from 'rxjs';
 import { ApiService } from '../api-service/api.service';
-import { Printers } from '../data/printers.model';
+import { PaperShape, PaperSize, SIZES } from '../data/paper-sizes';
 
 const getPx = (mm: number, dpi: number) => {
     return (mm / 25.4) * dpi;
@@ -56,8 +55,12 @@ const getPx = (mm: number, dpi: number) => {
     styleUrl: './canvas-page.component.scss',
 })
 export class CanvasPageComponent implements AfterViewInit, OnDestroy {
-    messages: Message[] = [
-        { severity: 'error', summary: 'Dynamic Warning Message' },
+    private readonly apiService = inject(ApiService);
+    readonly errorMessages: Message[] = [
+        { severity: 'error', summary: 'Printer is not selected' },
+    ];
+    readonly infoMessages: Message[] = [
+        { severity: 'warn', summary: 'No Printer is reachable' },
     ];
     @ViewChild('canvasElement') canvas?: ElementRef<HTMLCanvasElement>;
     public busy = false;
@@ -69,7 +72,7 @@ export class CanvasPageComponent implements AfterViewInit, OnDestroy {
     public width = 0;
     public height = 0;
     public fonts = ['Noto Sans', 'Noto Serif', 'Comic Sans MS'];
-    printerList = signal<Printers[]>([]);
+    printerList = toSignal(this.apiService.getPrinters(), { initialValue: [] });
 
     public set paperSize(size: PaperSize) {
         this.paperSizeForm.setValue(size);
@@ -84,9 +87,7 @@ export class CanvasPageComponent implements AfterViewInit, OnDestroy {
     private readonly removeObs = new Subject<void>();
 
     constructor(
-        private readonly apiService: ApiService,
         private readonly formBuilder: FormBuilder,
-        private readonly httpClient: HttpClient,
         private readonly messageService: MessageService,
     ) {
         this.form = this.formBuilder.group({
@@ -120,13 +121,6 @@ export class CanvasPageComponent implements AfterViewInit, OnDestroy {
     }
 
     public async ngAfterViewInit() {
-        this.apiService
-            .getPrinters()
-            .pipe(
-                takeUntil(this.removeObs),
-                tap((printerList) => this.printerList.set(printerList)),
-            )
-            .subscribe();
         if (this.canvas) {
             this.fabric = new fabric.Canvas('canvas', {
                 backgroundColor: '#fff',
@@ -211,33 +205,43 @@ export class CanvasPageComponent implements AfterViewInit, OnDestroy {
 
     public async print() {
         this.busy = true;
-        try {
-            this.form.markAllAsTouched();
-            if (this.form.valid) {
-                const fd = new FormData();
-                fd.append('image', await this.getBlob());
-                fd.append('width', String(this.width));
-                fd.append('height', String(this.height));
-                fd.append('printers', this.form.get('form')?.getRawValue());
-
-                const response = await firstValueFrom(
-                    this.httpClient.post('/print', fd),
-                );
-                this.messageService.add({
-                    severity: 'success',
-                    summary: 'Success',
-                    detail: 'enjoy your label',
-                });
-            }
-        } catch (e) {
-            console.error(e);
-            this.messageService.add({
-                severity: 'error',
-                summary: 'oof',
-                detail: (e as any).message ? (e as any).message : '???',
-            });
+        this.form.markAllAsTouched();
+        if (this.form.valid) {
+            const fd = new FormData();
+            await this.preparePrint(fd);
+            this.apiService
+                .print(fd)
+                .pipe(
+                    catchError((error) => this.handlePrintError(error)),
+                    finalize(() => this.handleFinallyPrint()),
+                )
+                .subscribe((_) => this.handleSuccessPrint());
         }
+    }
+    private handleSuccessPrint(): void {
+        this.messageService.add({
+            severity: 'success',
+            summary: 'Success',
+            detail: 'enjoy your label',
+        });
+    }
+    private handleFinallyPrint() {
         this.busy = false;
+    }
+    private handlePrintError(error: any): any {
+        console.error(error);
+        this.messageService.add({
+            severity: 'error',
+            summary: 'oof',
+            detail: (error as any).message ? (error as any).message : '???',
+        });
+    }
+
+    private async preparePrint(fd: FormData) {
+        fd.append('image', await this.getBlob());
+        fd.append('width', String(this.width));
+        fd.append('height', String(this.height));
+        fd.append('printers', this.form.get('form')?.getRawValue());
     }
 
     public clear() {

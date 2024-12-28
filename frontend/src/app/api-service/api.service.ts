@@ -11,4 +11,8 @@ export class ApiService {
     getPrinters() {
         return this.httpClient.get<Printers[]>('printers');
     }
+
+    print(formData: FormData) {
+        return this.httpClient.post('print', formData);
+    }
 }

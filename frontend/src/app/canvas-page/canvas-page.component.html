@@ -51,6 +51,13 @@
 @if (form) {
     <form class="controls" [formGroup]="form">
         <div class="flex flex-column gap-4">
+            @if (!printerList().length) {
+                <p-messages
+                    [enableService]="false"
+                    [closable]="false"
+                    [(value)]="infoMessages"
+                ></p-messages>
+            }
             @for (printer of printerList(); track printer) {
                 <div class="field-checkbox">
                     <p-radioButton
@@ -70,7 +77,7 @@
                 <p-messages
                     [enableService]="false"
                     [closable]="false"
-                    [(value)]="messages"
+                    [(value)]="errorMessages"
                 ></p-messages>
             }
         </div>
