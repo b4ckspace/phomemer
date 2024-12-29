@@ -2,8 +2,8 @@
   "cable_flag_yellow": {
     "name": "Yellow",
     "shape": "cable_flag",
-    "width": 30,
-    "height": 100,
+    "width": 25,
+    "height": 75,
     "dpi": 204
   },
   "rect_40_30_white": {

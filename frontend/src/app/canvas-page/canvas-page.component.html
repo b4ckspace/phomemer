@@ -5,9 +5,9 @@
         [attr.data-shape]="currentPrinter()?.paper?.shape"
     >
         <canvas id="canvas" #canvasElement></canvas>
-        <div class="canvas-mask">
+        <div class="canvas-mask {{currentPrinter()?.paper?.shape }}">
             <div class="label"></div>
-            @if ((currentPrinter()?.paper?.shape ?? "") === "split") {
+            @if ((currentPrinter()?.paper?.shape) === "split") {
                 <div class="label"></div>
             }
         </div>
@@ -42,10 +42,8 @@
                     </label>
                 </div>
             }
-            @if (
-                form.get("selectedPrinter")?.invalid &&
-                form.get("selectedPrinter")?.touched
-            ) {
+            @if (form.get("selectedPrinter")?.invalid &&
+            form.get("selectedPrinter")?.touched) {
                 <p-message
                     severity="error"
                     text="Printer is not selected"
@@ -101,13 +99,15 @@
 
 <div class="actions">
     <p-button [disabled]="busy" severity="danger" size="large" (click)="clear()"
-        >clear</p-button
+    >clear
+    </p-button
     >
     <p-button
         [disabled]="busy"
         severity="success"
         size="large"
         (click)="print()"
-        >print</p-button
+    >print
+    </p-button
     >
 </div>
