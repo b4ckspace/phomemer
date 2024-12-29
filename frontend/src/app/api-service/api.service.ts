@@ -1,9 +1,10 @@
 import { HttpClient } from '@angular/common/http';
-import { inject, Injectable } from '@angular/core';
+import { DestroyRef, inject, Injectable } from '@angular/core';
 import { Printers } from '../data/printers.model';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
+    destroyRef = inject(DestroyRef);
     private readonly httpClient = inject(HttpClient);
 
     getPrinters() {

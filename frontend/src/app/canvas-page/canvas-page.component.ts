@@ -3,7 +3,6 @@ import {
     Component,
     ElementRef,
     inject,
-    OnDestroy,
     signal,
     ViewChild,
 } from '@angular/core';
@@ -26,7 +25,7 @@ import { OverlayPanelModule } from 'primeng/overlaypanel';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { SliderModule } from 'primeng/slider';
 import { ToastModule } from 'primeng/toast';
-import { catchError, debounceTime, finalize, of, Subject, tap } from 'rxjs';
+import { catchError, debounceTime, finalize, of, takeWhile, tap } from 'rxjs';
 import { ApiService } from '../api-service/api.service';
 import { Printers } from '../data/printers.model';
 const getPx = (mm: number, dpi: number) => {
@@ -68,6 +67,7 @@ export class CanvasPageComponent implements AfterViewInit {
             catchError(() => of([])),
             tap((list) => this.currentPrinter.set(list[0])),
             tap((list) => this.form.get('selectedPrinter')?.setValue(list[0])),
+            takeUntilDestroyed(this.apiService.destroyRef),
         ),
         { initialValue: [] },
     );
@@ -176,7 +176,9 @@ export class CanvasPageComponent implements AfterViewInit {
                 .print(fd)
                 .pipe(
                     catchError((error) => this.handlePrintError(error)),
+                    takeWhile((obs)=>obs !==undefined),
                     finalize(() => this.handleFinallyPrint()),
+                    takeUntilDestroyed(this.apiService.destroyRef),
                 )
                 .subscribe((_) => this.handleSuccessPrint());
         }
@@ -202,6 +204,7 @@ export class CanvasPageComponent implements AfterViewInit {
             summary: 'oof',
             detail: (error as any).message ? (error as any).message : '???',
         });
+        return of(undefined)
     }
 
     public clear() {
