@@ -26,12 +26,19 @@
             @for (printer of printerList(); track printer; let idx = $index) {
                 <div class="field-checkbox">
                     <p-radioButton
-                        [inputId]="printer.address"
+                        [inputId]="printer.device"
                         [value]="printer"
                         formControlName="selectedPrinter"
                     />
-                    <label [for]="printer.address" class="ml-2">
+                    <label [for]="printer.device" class="ml-2">
                         {{ printer.name }}
+                        (
+                        {{ printer.paper.width }}
+                        x
+                        {{ printer.paper.height }}
+                        {{ printer.paper.name }}
+                        {{ printer.paper.shape }}
+                        )
                     </label>
                 </div>
             }

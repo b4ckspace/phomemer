@@ -1,6 +1,13 @@
 {
-  "rect_40_30": {
-    "name": "rect_40_30",
+  "cable_flag_yellow": {
+    "name": "Yellow",
+    "shape": "cable_flag",
+    "width": 30,
+    "height": 100,
+    "dpi": 204
+  },
+  "rect_40_30_white": {
+    "name": "White",
     "shape": "rectangular",
     "width": 40,
     "height": 30,

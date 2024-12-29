@@ -3,5 +3,5 @@ export interface Paper {
     width: number;
     height: number;
     dpi: number;
-    shape: string;
+    shape: 'rectangular' | 'circle' | 'split' | 'cable_flag';
 }

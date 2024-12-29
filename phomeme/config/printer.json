@@ -1,7 +1,12 @@
 [
   {
-    "address": "qwertz",
-    "paper": "circ_50",
-    "name": "printer1"
+    "device": "FA:B2:D6:6C:16:E0",
+    "paper": "rect_40_30_white",
+    "name": "Flo Pink"
+  },
+  {
+    "device": "9E:34:88:29:DD:1D",
+    "paper": "cable_flag_yellow",
+    "name": "xAndy Orange"
   }
 ]

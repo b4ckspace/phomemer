@@ -57,10 +57,15 @@ def handle_image():
 
     try:
         print_image = PrintImage(img, offset=True, resize=(width, height))
+
+        if printer_name is None:
+            printer_name = config.printers[0]["name"]
+
+        printer_config = [x for x in config.printers if x["name"] == printer_name][0]
+
         printer = Printer(
-            device=(
-                config.printers[0]["address"] if printer_name is None else printer_name
-            )
+            device=printer_config["device"],
+            name=printer_config["name"],
         )
         printer.print(print_image)
     except Exception as e:
@@ -122,9 +127,6 @@ class PrintImage:
 
     def _resize(self, target_width, target_height):
         img = self.image
-
-        if img.height > img.width:
-            img = img.transpose(Image.ROTATE_90)
 
         if img.width / target_width > img.height / target_height:
             # target_width is bigger dimension -> keep it

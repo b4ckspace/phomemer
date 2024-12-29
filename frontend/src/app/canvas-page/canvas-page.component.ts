@@ -1,34 +1,22 @@
-import {
-    AfterViewInit,
-    Component,
-    ElementRef,
-    inject,
-    OnDestroy,
-    signal,
-    ViewChild,
-} from '@angular/core';
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import {
-    FormBuilder,
-    FormGroup,
-    ReactiveFormsModule,
-    Validators,
-} from '@angular/forms';
-import { fabric } from 'fabric';
-import { MessageService } from 'primeng/api';
-import { ButtonModule } from 'primeng/button';
-import { CheckboxModule } from 'primeng/checkbox';
-import { Message } from 'primeng/message';
-import { ChipModule } from 'primeng/chip';
-import { DropdownModule } from 'primeng/dropdown';
-import { InputTextModule } from 'primeng/inputtext';
-import { OverlayPanelModule } from 'primeng/overlaypanel';
-import { RadioButtonModule } from 'primeng/radiobutton';
-import { SliderModule } from 'primeng/slider';
-import { ToastModule } from 'primeng/toast';
-import { catchError, debounceTime, finalize, of, Subject, tap } from 'rxjs';
-import { ApiService } from '../api-service/api.service';
-import { Printers } from '../data/printers.model';
+import {AfterViewInit, Component, ElementRef, inject, signal, ViewChild,} from '@angular/core';
+import {toSignal} from '@angular/core/rxjs-interop';
+import {FormBuilder, FormGroup, ReactiveFormsModule, Validators,} from '@angular/forms';
+import {fabric} from 'fabric';
+import {MessageService} from 'primeng/api';
+import {ButtonModule} from 'primeng/button';
+import {CheckboxModule} from 'primeng/checkbox';
+import {Message} from 'primeng/message';
+import {ChipModule} from 'primeng/chip';
+import {DropdownModule} from 'primeng/dropdown';
+import {InputTextModule} from 'primeng/inputtext';
+import {OverlayPanelModule} from 'primeng/overlaypanel';
+import {RadioButtonModule} from 'primeng/radiobutton';
+import {SliderModule} from 'primeng/slider';
+import {ToastModule} from 'primeng/toast';
+import {catchError, debounceTime, finalize, of, tap} from 'rxjs';
+import {ApiService} from '../api-service/api.service';
+import {Printer} from '../data/printer.model';
+
 const getPx = (mm: number, dpi: number) => {
     return (mm / 25.4) * dpi;
 };
@@ -62,14 +50,14 @@ export class CanvasPageComponent implements AfterViewInit {
     public width = 0;
     public height = 0;
     public fonts = ['Noto Sans', 'Noto Serif', 'Comic Sans MS'];
-    currentPrinter = signal<Printers | undefined>(undefined);
+    currentPrinter = signal<Printer | undefined>(undefined);
     printerList = toSignal(
         this.apiService.getPrinters().pipe(
             catchError(() => of([])),
             tap((list) => this.currentPrinter.set(list[0])),
             tap((list) => this.form.get('selectedPrinter')?.setValue(list[0])),
         ),
-        { initialValue: [] },
+        {initialValue: []},
     );
 
     constructor(
@@ -98,7 +86,8 @@ export class CanvasPageComponent implements AfterViewInit {
                 centeredScaling: true,
                 centeredRotation: true,
             });
-            this.fabric.setBackgroundColor('#fff', () => {});
+            this.fabric.setBackgroundColor('#fff', () => {
+            });
             this.fabric.freeDrawingBrush.width =
                 this.form.get('brushSize')?.value;
         }
@@ -107,7 +96,7 @@ export class CanvasPageComponent implements AfterViewInit {
             console.log(values);
             if (values.selectedPrinter) {
                 this.currentPrinter.set(values.selectedPrinter);
-                const { width, height, dpi } = values.selectedPrinter.paper;
+                const {width, height, dpi} = values.selectedPrinter.paper;
                 this.width = getPx(width, dpi);
                 this.height = getPx(height, dpi);
                 this.fabric?.setWidth(this.width);
@@ -123,7 +112,7 @@ export class CanvasPageComponent implements AfterViewInit {
     }
 
     public createText() {
-        this.form.patchValue({ drawingMode: false });
+        this.form.patchValue({drawingMode: false});
         if (this.fabric) {
             this.fabric.add(
                 new fabric.Textbox('add text', {
@@ -139,7 +128,7 @@ export class CanvasPageComponent implements AfterViewInit {
     }
 
     public createImg() {
-        this.form.patchValue({ drawingMode: false });
+        this.form.patchValue({drawingMode: false});
         if (this.fabric) {
             const fileInput = document.createElement('input');
             fileInput.setAttribute('type', 'file');
@@ -150,7 +139,7 @@ export class CanvasPageComponent implements AfterViewInit {
                 reader.onload = (f) => {
                     const data = (f as any).target.result;
                     fabric.Image.fromURL(data, (img) => {
-                        const oImg = img.set({ left: 0, top: 0, angle: 0 });
+                        const oImg = img.set({left: 0, top: 0, angle: 0});
                         const scale = Math.min(
                             1,
                             this.width / Number(oImg.width),
@@ -170,20 +159,19 @@ export class CanvasPageComponent implements AfterViewInit {
         this.form.markAllAsTouched();
         if (this.form.valid) {
             this.busy = true;
-            const fd = new FormData();
-            await this.preparePrint(fd);
             this.apiService
-                .print(fd)
+                .print({
+                    image: await this.getBlob(),
+                    printer: this.currentPrinter()!,
+                    width: this.width,
+                    height: this.height
+                })
                 .pipe(
                     catchError((error) => this.handlePrintError(error)),
                     finalize(() => this.handleFinallyPrint()),
                 )
                 .subscribe((_) => this.handleSuccessPrint());
         }
-    }
-    private async preparePrint(fd: FormData) {
-        fd.append('image', await this.getBlob());
-        fd.append('printers', JSON.stringify(this.currentPrinter()));
     }
 
     private handleSuccessPrint(): void {
@@ -193,9 +181,11 @@ export class CanvasPageComponent implements AfterViewInit {
             detail: 'enjoy your label',
         });
     }
+
     private handleFinallyPrint() {
         this.busy = false;
     }
+
     private handlePrintError(error: any): any {
         this.messageService.add({
             severity: 'error',
@@ -206,7 +196,8 @@ export class CanvasPageComponent implements AfterViewInit {
 
     public clear() {
         this.fabric?.clear();
-        this.fabric?.setBackgroundColor('#fff', () => {});
+        this.fabric?.setBackgroundColor('#fff', () => {
+        });
     }
 
     private getBlob(): Promise<Blob> {
