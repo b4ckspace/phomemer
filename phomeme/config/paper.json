@@ -1,4 +1,11 @@
 {
+  "long_boy": {
+    "name": "LONG BOY",
+    "shape": "endless",
+    "width": 40,
+    "height": 200,
+    "dpi": 204
+  },
   "cable_flag_yellow": {
     "name": "Yellow",
     "shape": "cable_flag",
