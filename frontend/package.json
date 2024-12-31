@@ -1,12 +1,13 @@
 {
   "name": "phomemer",
-  "version": "0.0.0",
+  "version": "0.0.42",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "prepare": "cd ../ && husky frontend/.husky && husky install"
   },
   "private": true,
   "dependencies": {
@@ -32,12 +33,23 @@
     "@angular/compiler-cli": "^19.0.5",
     "@types/fabric": "^5.3.7",
     "@types/jasmine": "~5.1.0",
+    "angular-eslint": "19.0.2",
+    "eslint": "^9.16.0",
+    "eslint-config-prettier": "^9.1.0",
+    "husky": "^9.1.7",
     "jasmine-core": "~5.1.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
-    "typescript": "~5.5.4"
+    "lint-staged": "^15.3.0",
+    "prettier": "^3.4.2",
+    "typescript": "~5.5.4",
+    "typescript-eslint": "8.18.0"
+  },
+  "lint-staged": {
+    "*.js": "ng lint --cache --fix",
+    "*.{js,css,md}": "prettier --write"
   }
 }
