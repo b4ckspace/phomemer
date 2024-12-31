@@ -1,29 +1,19 @@
-import {HttpClient} from '@angular/common/http';
-import {inject, Injectable} from '@angular/core';
-import {Printer} from '../data/printer.model';
+import { HttpClient } from '@angular/common/http';
+import { DestroyRef, inject, Injectable } from '@angular/core';
+import { Printer } from '../models/printer.model';
 
-interface PrintParams {
-    image: Blob;
-    printer: Printer;
-    width: number;
-    height: number;
-}
-
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class ApiService {
+    destroyRef = inject(DestroyRef);
     private readonly httpClient = inject(HttpClient);
 
     getPrinters() {
         return this.httpClient.get<Printer[]>('printers');
     }
 
-    print({image, printer, width, height}: PrintParams) {
-        const fd = new FormData();
-        fd.append('image', image);
-        fd.append('width', String(width));
-        fd.append('height', String(height));
+    print(fd: FormData, printer: string) {
         return this.httpClient.post('print', fd, {
-            params: {printer: printer.name}
+            params: { printer },
         });
     }
 }

@@ -3,7 +3,6 @@
     justify-content: center;
 }
 
-
 .canvas-frame {
     position: relative;
     border-radius: 15px;
@@ -29,11 +28,11 @@
 
     .label {
         flex: 1;
-        border: 2px solid rgba(0,0,0,0.5);
+        border: 2px solid rgba(0, 0, 0, 0.5);
         border-radius: 15px;
     }
 
-    &[data-shape="circular"] {
+    &[data-shape='circular'] {
         border-radius: 50%;
 
         .label {
@@ -41,7 +40,6 @@
         }
     }
 }
-
 
 .controls {
     padding: 0.5em 0;

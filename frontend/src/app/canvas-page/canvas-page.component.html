@@ -1,13 +1,10 @@
 <p-toast></p-toast>
 <div class="canvas-wrapper">
-    <div
-        class="canvas-frame"
-        [attr.data-shape]="currentPrinter()?.paper?.shape"
-    >
+    <div class="canvas-frame" [attr.data-shape]="currentPrinter()?.paper?.shape">
         <canvas id="canvas" #canvasElement></canvas>
         <div class="canvas-mask {{currentPrinter()?.paper?.shape }}">
             <div class="label"></div>
-            @if ((currentPrinter()?.paper?.shape) === "split") {
+            @if ((currentPrinter()?.paper?.shape ?? '') === 'split') {
                 <div class="label"></div>
             }
         </div>
@@ -17,19 +14,14 @@
 @if (form) {
     <form class="controls" [formGroup]="form">
         <div class="flex flex-column gap-4">
-            @if (!printerList().length) {
+            @if (printerList() === null) {
                 <p-message
                     severity="warn"
-                    text="Please connect any Printer, because no Printer is reachable"
-                ></p-message>
+                    text="Please connect any Printer, because no Printer is reachable"></p-message>
             }
-            @for (printer of printerList(); track printer; let idx = $index) {
+            @for (printer of printerList() ?? []; track printer; let idx = $index) {
                 <div class="field-checkbox">
-                    <p-radioButton
-                        [inputId]="printer.device"
-                        [value]="printer"
-                        formControlName="selectedPrinter"
-                    />
+                    <p-radioButton [inputId]="printer.device" [value]="printer" formControlName="selectedPrinter" />
                     <label [for]="printer.device" class="ml-2">
                         {{ printer.name }}
                         (
@@ -42,54 +34,31 @@
                     </label>
                 </div>
             }
-            @if (form.get("selectedPrinter")?.invalid &&
-            form.get("selectedPrinter")?.touched) {
-                <p-message
-                    severity="error"
-                    text="Printer is not selected"
-                ></p-message>
+            @if (form.get('selectedPrinter')?.invalid && form.get('selectedPrinter')?.touched) {
+                <p-message severity="error" text="Printer is not selected"></p-message>
             }
         </div>
         <div class="group group-drawing">
             <label class="item">
-                <p-checkbox
-                    formControlName="drawingMode"
-                    [binary]="true"
-                    inputId="drawingMode"
-                ></p-checkbox>
+                <p-checkbox formControlName="drawingMode" [binary]="true" inputId="drawingMode"></p-checkbox>
                 enable drawing
             </label>
-            <p-slider
-                class="item grow"
-                [min]="1"
-                [max]="30"
-                formControlName="brushSize"
-            ></p-slider>
+            <p-slider class="item grow" [min]="1" [max]="30" formControlName="brushSize"></p-slider>
             <div class="brush-preview">
                 <div
                     class="brush"
                     [style.width]="form.get('brushSize')?.value + 'px'"
-                    [style.height]="form.get('brushSize')?.value + 'px'"
-                ></div>
-                <span class="size">{{ form.get("brushSize")?.value }}</span>
+                    [style.height]="form.get('brushSize')?.value + 'px'"></div>
+                <span class="size">{{ form.get('brushSize')?.value }}</span>
             </div>
         </div>
         <div class="group group-text">
             <p-button size="small" (click)="createText()">+ text</p-button>
-            <p-slider
-                class="item grow"
-                [min]="5"
-                [max]="72"
-                formControlName="fontSize"
-            ></p-slider>
+            <p-slider class="item grow" [min]="5" [max]="72" formControlName="fontSize"></p-slider>
             <p-chip label="{{ form.get('fontSize')?.value }}"></p-chip>
         </div>
         <div class="group group-text">
-            <p-dropdown
-                formControlName="fontFamily"
-                [editable]="true"
-                [options]="fonts"
-            ></p-dropdown>
+            <p-dropdown formControlName="fontFamily" [editable]="true" [options]="fonts"></p-dropdown>
         </div>
         <div class="group group-text">
             <p-button size="small" (click)="createImg()">+ img</p-button>
@@ -98,16 +67,6 @@
 }
 
 <div class="actions">
-    <p-button [disabled]="busy" severity="danger" size="large" (click)="clear()"
-    >clear
-    </p-button
-    >
-    <p-button
-        [disabled]="busy"
-        severity="success"
-        size="large"
-        (click)="print()"
-    >print
-    </p-button
-    >
+    <p-button [disabled]="busy" severity="danger" size="large" (click)="clear()">clear</p-button>
+    <p-button [disabled]="busy" severity="success" size="large" (click)="print()">print</p-button>
 </div>

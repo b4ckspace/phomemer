@@ -4,7 +4,7 @@ import tseslint from 'typescript-eslint';
 
 /** @type {import('eslint').Linter.Config[]} */
 export default [
-    { rules: { '@typescript-eslint/no-explicit-any': 'off', 'no-console': 'warn' } },
+    { rules: { '@typescript-eslint/no-explicit-any': 'off', 'no-console': 'off' } },
     { ignores: ['**/node_modules/'] },
     { files: ['**/*.{js,mjs,cjs,ts}'] },
     { languageOptions: { globals: globals.browser } },

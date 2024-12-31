@@ -1,4 +1,4 @@
-import {Paper} from './paper.model';
+import { Paper } from './paper.model';
 
 export interface Printer {
     device: string;
