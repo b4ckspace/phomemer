@@ -19,7 +19,7 @@
                     severity="warn"
                     text="Please connect any Printer, because no Printer is reachable"></p-message>
             }
-            @for (printer of printerList() ?? []; track printer; let idx = $index) {
+            @for (printer of printerList(); track printer; let idx = $index) {
                 <div class="field-checkbox">
                     <p-radioButton [inputId]="printer.device" [value]="printer" formControlName="selectedPrinter" />
                     <label [for]="printer.device" class="ml-2">
