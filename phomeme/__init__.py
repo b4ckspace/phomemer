@@ -24,7 +24,7 @@ CORS(app)
 
 @app.route("/")
 def index():
-    return redirect("/index.html")
+    return redirect("index.html")
 
 
 @app.route("/<path:static>")
