@@ -123,7 +123,7 @@ export class CanvasPageComponent implements AfterViewInit {
         });
 
         try {
-            const response = await firstValueFrom(this.httpClient.get<number>('/papersize'));
+            const response = await firstValueFrom(this.httpClient.get<number>('papersize'));
             this.paperSize = SIZES[response];
             this.paperSizeConfigured = true;
         } finally {}
@@ -175,7 +175,7 @@ export class CanvasPageComponent implements AfterViewInit {
             fd.append('image', await this.getBlob());
             fd.append('width', String(this.width));
             fd.append('height', String(this.height));
-            const response = await firstValueFrom(this.httpClient.post('/print', fd));
+            const response = await firstValueFrom(this.httpClient.post('print', fd));
             this.messageService.add({severity: 'success', summary: 'Success', detail: 'enjoy your label'});
         } catch (e) {
             console.error(e);
