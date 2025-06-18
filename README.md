@@ -55,7 +55,9 @@ PHOMEMO_BT_MAC=<your-printers-mac> poetry run gunicorn -w 1 'phomeme:app' -b [::
 ## Usage
 
 Visit the awesome frontend on http://localhost:8000 or send via
-curl using `curl -v -F image=@image.pdf localhost:5000/print`.
+curl using `curl -v -F image=@test.png -F width=321 -F height=241 127.0.0.1:8000/print`.
+
+Width and height depend on the label used. The example values are for 30x40mm at 204 dpi.
 
 ## Credits
 
